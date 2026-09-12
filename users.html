@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin · Kullanıcılar — Meydan</title>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+  <div class="admin-shell">
+    <aside class="admin-sidebar" id="admin-sidebar"></aside>
+    <div class="admin-main">
+      <div class="admin-top">
+        <div><b>Kullanıcılar</b><div class="muted" id="users-more"></div></div>
+        <button class="btn btn-primary btn-sm" id="add-user-btn" type="button">+ Kullanıcı</button>
+      </div>
+      <div class="admin-content">
+        <section class="card">
+          <table class="data">
+            <thead><tr><th>Üye</th><th>Rol</th><th>Mesaj</th><th>Durum</th><th></th></tr></thead>
+            <tbody id="users-body"></tbody>
+          </table>
+        </section>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/db.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/admin.js"></script>
+</body>
+</html>
