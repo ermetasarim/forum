@@ -75,11 +75,22 @@
       });
       return { categories: cats.data || [], topics: topicRows, authors: authors, postCount: postCount };
     },
+    async usersByIds(ids) {
+      var uniq = [];
+      (ids || []).forEach(function (id) { if (id && uniq.indexOf(id) === -1) uniq.push(id); });
+      if (!uniq.length) return {};
+      const res = await sb.from("profiles").select("*").in("id", uniq);
+      var map = {};
+      (res.data || []).forEach(function (u) {
+        map[u.id] = { id: u.id, name: u.name, username: u.username, email: u.email, role: u.role, status: u.status, messages: u.messages || 0, createdAt: u.created_at ? Date.parse(u.created_at) : 0 };
+      });
+      return map;
+    },
     async userById(id) {
       if (!id) return null;
       const res = await sb.from("profiles").select("*").eq("id", id).maybeSingle();
       if (res.error || !res.data) return null;
-      return { id: res.data.id, name: res.data.name, email: res.data.email, role: res.data.role, status: res.data.status, messages: res.data.messages || 0 };
+      return { id: res.data.id, name: res.data.name, username: res.data.username, email: res.data.email, role: res.data.role, status: res.data.status, messages: res.data.messages || 0, createdAt: res.data.created_at ? Date.parse(res.data.created_at) : 0 };
     },
     async ensureProfile(user) {
       if (!user) return;

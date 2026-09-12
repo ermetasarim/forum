@@ -241,67 +241,129 @@
     paint();
   }
 
+  function fmtClock(ts) {
+    if (!ts) return "—";
+    const d = new Date(ts);
+    const now = new Date();
+    const hh = String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+    const same = d.toDateString() === now.toDateString();
+    const yest = new Date(now); yest.setDate(now.getDate() - 1);
+    if (same) return "Bugün " + hh;
+    if (d.toDateString() === yest.toDateString()) return "Dün " + hh;
+    return d.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" }) + " " + hh;
+  }
+  function fmtJoin(ts) {
+    if (!ts) return "—";
+    return new Date(ts).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" });
+  }
+  function rankOf(user) {
+    if (!user) return "Üye";
+    if (user.role === "admin") return "Yönetici";
+    const n = user.messages || 0;
+    if (n > 800) return "Kilopat";
+    if (n > 200) return "Usta";
+    if (n > 40) return "Kıdemli";
+    return "Üye";
+  }
+  function cityOf(name) {
+    const list = ["İstanbul", "Ankara", "İzmir", "Bursa", "Antalya", "Eskişehir", "Konya", "Trabzon", "Erbaa", "Samsun"];
+    var n = 0;
+    String(name || "").split("").forEach(function (ch) { n += ch.charCodeAt(0); });
+    return list[n % list.length];
+  }
+  function formatBody(raw) {
+    var text = UI.escapeHtml(raw || "");
+    var url = null;
+    text = text.replace(/https?:\/\/[^\s<]+/g, function (u) {
+      url = u;
+      return "";
+    });
+    text = text.replace(/\n/g, "<br>").trim();
+    var html = "<p>" + text + "</p>";
+    if (url) {
+      var host = url.replace(/^https?:\/\//, "").split("/")[0];
+      html += '<a class="link-card" href="' + url + '" target="_blank" rel="noopener">' +
+        "<b>" + url.slice(0, 88) + (url.length > 88 ? "…" : "") + "</b>" +
+        "<span>" + UI.escapeHtml(host) + "</span></a>";
+    }
+    return html;
+  }
+
   async function renderThread(user) {
     await mountPublic(user);
     const id = UI.param("id");
     const topic = await DB.topicById(id);
     const wrap = document.getElementById("thread-wrap");
     if (!topic) {
-      wrap.innerHTML = UI.emptyBox("Konu yok", "Silinmis olabilir.", '<a class="btn btn-primary" href="index.html">Ana sayfa</a>');
+      wrap.innerHTML = UI.emptyBox("Konu yok", "Silinmiş olabilir.", '<a class="btn btn-primary" href="index.html">Ana sayfa</a>');
       return;
     }
     const cat = await DB.categoryById(topic.categoryId);
-    document.getElementById("crumb-cat").textContent = cat ? cat.name : "Kategori";
-    document.getElementById("crumb-cat").href = cat ? "category.html?id=" + cat.id : "index.html";
-    document.getElementById("thread-title").textContent = topic.title;
-    document.getElementById("thread-flags").innerHTML =
-      (topic.pinned ? '<span class="badge badge-pin">Sabit</span>' : "") +
-      (topic.locked ? '<span class="badge badge-lock">Kilitli</span>' : "");
+    document.title = topic.title;
+    const crumbCat = document.getElementById("crumb-cat");
+    if (crumbCat) {
+      crumbCat.textContent = cat ? cat.name : "Forum";
+      crumbCat.href = cat ? "category.html?id=" + cat.id : "index.html";
+    }
+    const titleEl = document.getElementById("thread-title");
+    if (titleEl) titleEl.textContent = topic.title;
+    const flags = document.getElementById("thread-flags");
+    if (flags) flags.innerHTML = (topic.pinned ? '<span class="badge badge-guide">Rehber</span>' : "") + (topic.locked ? '<span class="badge badge-lock">Kilitli</span>' : "");
     const posts = await DB.posts(topic.id);
+    const authors = await DB.usersByIds(posts.map(function (p) { return p.authorId; }));
     var html = "";
     for (var i = 0; i < posts.length; i++) {
       const p = posts[i];
-      const a = await DB.userById(p.authorId);
-      html += `
-          <article class="post">
-            <div class="author">
-              <div class="avatar">${UI.escapeHtml(window.MeydanAuth.initials(a || { name: "?" }))}</div>
-              <div class="author-name">${UI.escapeHtml(a ? a.name : "Silinmis")}</div>
-              <div class="author-role">${a && a.role === "admin" ? "Yonetici" : "Uye"}</div>
-              <div class="author-meta">${a ? a.messages + " mesaj" : ""}</div>
-            </div>
-            <div class="post-body">
-              <div class="post-meta"><span>#${i + 1} · ${UI.fmtTime(p.createdAt)}</span></div>
-              <div class="post-content"><p>${UI.escapeHtml(p.body).replace(/\n/g, "<br>")}</p></div>
-            </div>
-          </article>`;
+      const a = authors[p.authorId] || { name: "Üye", messages: 0 };
+      const isOp = p.authorId === topic.authorId;
+      html += '<article class="postbit" id="p' + (i + 1) + '">';
+      html += '<aside class="pb-user">';
+      html += '<div class="pb-ava" style="background:' + avatarColor(a.name) + '">' + UI.escapeHtml(initial(a.name)) + "</div>";
+      html += '<div class="pb-name">' + UI.escapeHtml(a.name) + "</div>";
+      html += '<div class="pb-rank">' + rankOf(a) + "</div>";
+      html += '<div class="pb-icons">⏳</div>';
+      html += '<dl class="pb-stats">';
+      html += "<div><dt>Katılım:</dt><dd>" + fmtJoin(a.createdAt) + "</dd></div>";
+      html += "<div><dt>Mesajlar:</dt><dd>" + (a.messages || 0).toLocaleString("tr-TR") + "</dd></div>";
+      html += "<div><dt>Yer:</dt><dd>" + cityOf(a.name) + "</dd></div>";
+      html += "</dl></aside>";
+      html += '<div class="pb-body">';
+      html += '<div class="pb-top"><span>' + fmtClock(p.createdAt) + (isOp && i > 0 ? ' <span class="op-badge">Konu Sahibi</span>' : "") + "</span>";
+      html += '<span class="pb-no">#' + (i + 1) + "</span></div>";
+      if (i > 0) {
+        const prev = posts[i - 1];
+        const prevA = authors[prev.authorId] || { name: "Üye" };
+        var q = String(prev.body || "");
+        if (q.length > 180) q = q.slice(0, 180) + "…";
+        html += '<blockquote class="pb-quote"><div class="q-head">' + UI.escapeHtml(prevA.name) + " dedi:</div><p>" + UI.escapeHtml(q) + "</p></blockquote>";
+      }
+      html += '<div class="pb-content">' + formatBody(p.body) + "</div>";
+      html += '<div class="pb-actions"><a href="#reply-box">Cevapla</a></div>';
+      html += "</div></article>";
     }
     document.getElementById("posts").innerHTML = html;
     const form = document.getElementById("reply-form");
     const box = document.getElementById("reply-box");
     if (topic.locked) {
-      box.innerHTML = '<p class="muted">Bu konu kilitli. Yeni yanit yazilamaz.</p>';
-    } else {
+      box.innerHTML = '<p class="muted" style="padding:12px">Bu konu kilitli.</p>';
+    } else if (form) {
       form.addEventListener("submit", async function (e) {
         e.preventDefault();
         try {
           await DB.addPost({ topicId: topic.id, body: form.body.value, authorId: user.id });
-          UI.toast("Yanit eklendi");
+          UI.toast("Yanıt eklendi");
           location.reload();
         } catch (err) {
           UI.toast(err.message, "err");
         }
       });
     }
-    document.getElementById("pin-btn").addEventListener("click", async function () {
-      await DB.updateTopic(topic.id, { pinned: !topic.pinned });
-      location.reload();
-    });
-    document.getElementById("lock-btn").addEventListener("click", async function () {
-      await DB.updateTopic(topic.id, { locked: !topic.locked });
-      location.reload();
-    });
-    document.getElementById("del-btn").addEventListener("click", async function () {
+    const pin = document.getElementById("pin-btn");
+    const lock = document.getElementById("lock-btn");
+    const del = document.getElementById("del-btn");
+    if (pin) pin.addEventListener("click", async function () { await DB.updateTopic(topic.id, { pinned: !topic.pinned }); location.reload(); });
+    if (lock) lock.addEventListener("click", async function () { await DB.updateTopic(topic.id, { locked: !topic.locked }); location.reload(); });
+    if (del) del.addEventListener("click", async function () {
       if (!confirm("Konu silinsin mi?")) return;
       await DB.deleteTopic(topic.id);
       location.href = cat ? "category.html?id=" + cat.id : "index.html";
