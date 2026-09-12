@@ -58,8 +58,22 @@
       const cats = await sb.from("categories").select("*").order("sort_order", { ascending: true });
       fail(cats.error);
       const topics = await sb.from("topics").select("id,category_id,title,updated_at,author_id,pinned,locked").order("updated_at", { ascending: false });
-      if (topics.error) return { categories: cats.data || [], topics: [] };
-      return { categories: cats.data || [], topics: topics.data || [] };
+      const posts = await sb.from("posts").select("topic_id");
+      var authors = {};
+      var topicRows = topics.data || [];
+      var ids = [];
+      topicRows.forEach(function (t) {
+        if (t.author_id && ids.indexOf(t.author_id) === -1 && ids.length < 40) ids.push(t.author_id);
+      });
+      if (ids.length) {
+        const prof = await sb.from("profiles").select("id,name,username").in("id", ids);
+        (prof.data || []).forEach(function (pr) { authors[pr.id] = pr.name || pr.username; });
+      }
+      var postCount = {};
+      (posts.data || []).forEach(function (row) {
+        postCount[row.topic_id] = (postCount[row.topic_id] || 0) + 1;
+      });
+      return { categories: cats.data || [], topics: topicRows, authors: authors, postCount: postCount };
     },
     async userById(id) {
       if (!id) return null;

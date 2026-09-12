@@ -9,14 +9,36 @@
     UI.wireChrome();
   }
 
+  function forumGroups(cats) {
+    const groups = [
+      { name: "Topluluk", desc: "Duyuru, sohbet, tanışma ve destek.", names: ["Duyurular", "Genel Sohbet", "Tanışma", "Yardım & Destek"] },
+      { name: "Teknoloji", desc: "Yazılım, donanım, mobil ve genel teknoloji.", names: ["Teknoloji", "Yazılım", "Donanım", "Mobil"] },
+      { name: "Kültür", desc: "Oyun, spor, sinema ve müzik.", names: ["Oyun", "Spor", "Sinema & Dizi", "Müzik"] },
+      { name: "Yaşam", desc: "Eğitim, ekonomi ve otomobil.", names: ["Eğitim", "Ekonomi", "Otomobil"] }
+    ];
+    const used = {};
+    const out = groups.map(function (g) {
+      const items = g.names.map(function (n) {
+        return cats.find(function (c) { return c.name === n; });
+      }).filter(Boolean);
+      items.forEach(function (c) { used[c.id] = true; });
+      return { name: g.name, desc: g.desc, items: items };
+    }).filter(function (g) { return g.items.length; });
+    const rest = cats.filter(function (c) { return !used[c.id]; });
+    if (rest.length) out.push({ name: "Diğer", desc: "", items: rest });
+    return out;
+  }
+
   async function renderIndex(user) {
     await mountPublic(user);
     const board = document.getElementById("board");
-    if (board) board.innerHTML = '<section class="board"><div class="board-h"><b>Forumlar</b></div><div class="empty"><p>Yükleniyor…</p></div></section>';
+    if (board) board.innerHTML = '<div class="empty"><p>Yükleniyor…</p></div>';
     const q = UI.param("q");
     var sourceCats = [];
     var extraTopics = [];
     var allTopics = [];
+    var authors = {};
+    var postCount = {};
     try {
       if (q) {
         const search = await DB.search(q);
@@ -24,42 +46,54 @@
         extraTopics = search.topics || [];
       } else {
         const data = await DB.boardIndex();
-        sourceCats = (data.categories || []).map(function (c) {
-          return { id: c.id, name: c.name, description: c.description || "", icon: c.icon || "●" };
-        });
+        sourceCats = data.categories || [];
         allTopics = data.topics || [];
+        authors = data.authors || {};
+        postCount = data.postCount || {};
       }
     } catch (e) {
-      if (board) board.innerHTML = '<section class="board">' + UI.emptyBox("Liste alınamadı", e.message, "") + "</section>";
+      if (board) board.innerHTML = UI.emptyBox("Liste alınamadı", e.message, "");
       return;
     }
+
+    function rowHtml(c) {
+      const topics = allTopics.filter(function (t) { return t.category_id === c.id; });
+      const last = topics[0] || null;
+      var msg = 0;
+      topics.forEach(function (t) { msg += postCount[t.id] || 0; });
+      var lastHtml = "—";
+      if (last) {
+        const who = authors[last.author_id] || "";
+        lastHtml = (last.pinned ? '<span class="badge badge-guide">Rehber</span> ' : "") +
+          '<a class="last-link" href="thread.html?id=' + encodeURIComponent(last.id) + '">' + UI.escapeHtml(last.title) + "</a>" +
+          '<div class="last-meta">' + UI.fmtTime(Date.parse(last.updated_at || last.updatedAt)) + (who ? " · " + UI.escapeHtml(who) : "") + "</div>";
+      }
+      return '<article class="forum-row">' +
+        '<div class="f-main"><div class="f-ico">' + UI.escapeHtml((c.icon || "●").slice(0, 3)) + "</div><div>" +
+        '<a class="f-title" href="category.html?id=' + encodeURIComponent(c.id) + '">' + UI.escapeHtml(c.name) + "</a>" +
+        (c.description ? '<div class="f-desc">' + UI.escapeHtml(c.description) + "</div>" : "") +
+        "</div></div>" +
+        '<div class="f-counts"><div><span>Konular</span><b>' + topics.length + "</b></div>" +
+        "<div><span>Mesajlar</span><b>" + msg + "</b></div></div>" +
+        '<div class="f-last">' + lastHtml + "</div></article>";
+    }
+
     if (board) {
       if (!sourceCats.length && !extraTopics.length) {
-        board.innerHTML = '<section class="board">' + UI.emptyBox(q ? "Sonuç yok" : "Forum yok", "", '<a class="btn btn-primary" href="admin/categories.html">Forum ekle</a>') + "</section>";
+        board.innerHTML = UI.emptyBox(q ? "Sonuç yok" : "Forum yok", "", '<a class="btn btn-primary" href="admin/categories.html">Forum ekle</a>');
+      } else if (q) {
+        board.innerHTML = '<section class="node"><div class="node-head"><h2>Arama</h2></div>' + sourceCats.map(rowHtml).join("") + "</section>";
       } else {
-        var html = '<section class="board"><div class="board-h"><b>' + (q ? "Arama" : "Forumlar") + '</b></div>';
-        html += '<div class="forum-head"><span>Forum</span><span>Konu</span><span>Son mesaj</span></div>';
-        sourceCats.forEach(function (c) {
-          const topics = allTopics.filter(function (t) { return t.category_id === c.id; });
-          const last = topics[0] || null;
-          html += '<a class="forum-row" href="category.html?id=' + encodeURIComponent(c.id) + '">' +
-            '<div class="f-main"><div class="f-ico">' + UI.escapeHtml(c.icon || "●") + '</div><div>' +
-            '<div class="f-title">' + UI.escapeHtml(c.name) + '</div>' +
-            (c.description ? '<div class="f-desc">' + UI.escapeHtml(c.description) + "</div>" : "") +
-            "</div></div>" +
-            '<div class="f-num">' + topics.length + "</div>" +
-            '<div class="f-last">' + (last ? "<b>" + UI.escapeHtml(last.title) + "</b>" + UI.fmtTime(Date.parse(last.updated_at || last.updatedAt)) : "—") + "</div></a>";
-        });
-        extraTopics.forEach(function (t) {
-          html += '<a class="forum-row" href="thread.html?id=' + encodeURIComponent(t.id) + '"><div class="f-main"><div class="f-ico">▸</div><div><div class="f-title">' + UI.escapeHtml(t.title) + "</div></div></div><div></div><div class=\"f-last\">" + UI.fmtTime(t.updatedAt) + "</div></a>";
-        });
-        html += "</section>";
-        board.innerHTML = html;
+        board.innerHTML = forumGroups(sourceCats).map(function (g) {
+          return '<section class="node"><div class="node-head"><h2>' + UI.escapeHtml(g.name) + "</h2>" +
+            (g.desc ? "<p>" + UI.escapeHtml(g.desc) + "</p>" : "") + "</div>" +
+            g.items.map(rowHtml).join("") + "</section>";
+        }).join("");
       }
     }
     const box = document.getElementById("board-stats");
     if (box) {
-      box.innerHTML = '<section class="board stats-box"><div class="board-h"><b>İstatistik</b></div>' +
+      box.innerHTML = '<section class="node stats-box"><div class="node-head"><h2>İstatistik</h2></div>' +
         '<div class="stats-grid"><div class="stats-cell">Forum: <b>' + sourceCats.length + "</b> · Konu: <b>" + allTopics.length + "</b></div>" +
         '<div class="stats-cell">Çevrimiçi <span class="online-dot"></span> <b>' + UI.escapeHtml(user.name) + "</b></div></div></section>";
     }
