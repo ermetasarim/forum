@@ -93,9 +93,17 @@
     }
     const box = document.getElementById("board-stats");
     if (box) {
+      var st = { categories: sourceCats.length, topics: allTopics.length, posts: 0, users: 0, lastMember: "—" };
+      try { st = Object.assign(st, await DB.stats()); } catch (e) {}
       box.innerHTML = '<section class="node stats-box"><div class="node-head"><h2>İstatistik</h2></div>' +
-        '<div class="stats-grid"><div class="stats-cell">Forum: <b>' + sourceCats.length + "</b> · Konu: <b>" + allTopics.length + "</b></div>" +
-        '<div class="stats-cell">Çevrimiçi <span class="online-dot"></span> <b>' + UI.escapeHtml(user.name) + "</b></div></div></section>";
+        '<div class="board-stats-row">' +
+        '<div class="bs"><span>Forum</span><b>' + (st.categories || sourceCats.length) + "</b></div>" +
+        '<div class="bs"><span>Konu</span><b>' + (st.topics || 0) + "</b></div>" +
+        '<div class="bs"><span>Mesaj</span><b>' + (st.posts || 0) + "</b></div>" +
+        '<div class="bs"><span>Üye</span><b>' + (st.users || 0) + "</b></div>" +
+        '<div class="bs"><span>Son üye</span><b>' + UI.escapeHtml(st.lastMember || "—") + "</b></div>" +
+        "</div>" +
+        '<div class="stats-online">Çevrimiçi <span class="online-dot"></span> <b>' + UI.escapeHtml(user.name) + "</b></div></section>";
     }
   }
 

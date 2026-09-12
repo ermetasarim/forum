@@ -272,11 +272,14 @@
       const posts = await sb.from("posts").select("id", { count: "exact", head: true });
       const categories = await sb.from("categories").select("id", { count: "exact", head: true });
       var userCount = 1;
+      var lastMember = null;
       try {
         const users = await sb.from("profiles").select("id", { count: "exact", head: true }).limit(1);
         if (!users.error) userCount = users.count || 1;
+        const last = await sb.from("profiles").select("name,username,created_at").order("created_at", { ascending: false }).limit(1);
+        if (last.data && last.data[0]) lastMember = last.data[0].name || last.data[0].username;
       } catch (e) {}
-      return { users: userCount, topics: topics.count || 0, posts: posts.count || 0, categories: categories.count || 0, openReports: 0, online: 1 };
+      return { users: userCount, topics: topics.count || 0, posts: posts.count || 0, categories: categories.count || 0, lastMember: lastMember, openReports: 0, online: 1 };
     },
     async search(q) {
       const query = String(q || "").trim();
