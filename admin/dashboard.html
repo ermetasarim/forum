@@ -9,62 +9,37 @@
 </head>
 <body>
   <div class="admin-shell">
-    <aside class="admin-sidebar">
-      <div class="admin-brand"><span class="logo-mark">M</span> Meydan Admin</div>
-      <div class="nav-label">Genel</div>
-      <a class="nav-link active" href="dashboard.html">📊 Kontrol paneli</a>
-      <a class="nav-link" href="users.html">👥 Kullanıcılar</a>
-      <a class="nav-link" href="moderation.html">🛡️ Moderasyon</a>
-      <a class="nav-link" href="categories.html">📁 Kategoriler</a>
-      <div class="nav-label">Sistem</div>
-      <a class="nav-link" href="settings.html">⚙️ Ayarlar</a>
-      <a class="nav-link" href="reports.html">📈 Raporlar</a>
-      <a class="nav-link" href="../index.html">↩ Siteye dön</a>
-    </aside>
+    <aside class="admin-sidebar" id="admin-sidebar"></aside>
     <div class="admin-main">
       <div class="admin-top">
         <div>
           <b>Kontrol paneli</b>
-          <div class="muted">12 Eylül 2026 · son 24 saat özeti</div>
+          <div class="muted" id="admin-who">Admin</div>
         </div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <button class="btn btn-outline btn-sm">Dışa aktar</button>
-          <span class="avatar">EL</span>
-        </div>
+        <button class="btn btn-outline btn-sm" id="reset-btn" type="button">Veriyi sıfırla</button>
       </div>
       <div class="admin-content">
         <div class="kpi-grid">
-          <div class="card kpi"><div class="label">Toplam üye</div><div class="value">18.420</div><div class="delta up">+126 bu hafta</div></div>
-          <div class="card kpi"><div class="label">Yeni konular</div><div class="value">84</div><div class="delta up">+12% düne göre</div></div>
-          <div class="card kpi"><div class="label">Bekleyen rapor</div><div class="value">7</div><div class="delta down">3 acil</div></div>
-          <div class="card kpi"><div class="label">Çevrimiçi</div><div class="value">214</div><div class="delta up">canlı</div></div>
+          <div class="card kpi"><div class="label">Üye</div><div class="value" id="kpi-users">1</div><div class="delta">yalnızca admin</div></div>
+          <div class="card kpi"><div class="label">Konu</div><div class="value" id="kpi-topics">0</div><div class="delta">sıfırlandı</div></div>
+          <div class="card kpi"><div class="label">Açık rapor</div><div class="value" id="kpi-reports">0</div><div class="delta">kuyruk boş</div></div>
+          <div class="card kpi"><div class="label">Çevrimiçi</div><div class="value" id="kpi-online">1</div><div class="delta up">sen</div></div>
         </div>
-
-        <div style="display:grid;grid-template-columns:1.4fr .8fr;gap:16px" class="admin-grid">
-          <section class="card">
-            <div class="section-head"><h2>Son kayıtlar</h2><a class="muted" href="users.html">Tümü</a></div>
-            <table class="data">
-              <thead><tr><th>Kullanıcı</th><th>E-posta</th><th>Durum</th><th>Tarih</th></tr></thead>
-              <tbody>
-                <tr><td>denizin</td><td>deniz@mail.com</td><td><span class="badge badge-warn">Onay bekliyor</span></td><td>09:41</td></tr>
-                <tr><td>kagan.k</td><td>kagan@mail.com</td><td><span class="badge badge-ok">Aktif</span></td><td>08:12</td></tr>
-                <tr><td>selin_92</td><td>selin@mail.com</td><td><span class="badge badge-ok">Aktif</span></td><td>Dün</td></tr>
-                <tr><td>umutdev</td><td>umut@mail.com</td><td><span class="badge badge-off">Askıda</span></td><td>Dün</td></tr>
-              </tbody>
-            </table>
-          </section>
-          <section class="card">
-            <div class="section-head"><h2>Hızlı işlemler</h2></div>
-            <div style="padding:16px;display:grid;gap:10px">
-              <a class="btn btn-primary" href="moderation.html">Rapor kuyruğunu aç</a>
-              <a class="btn btn-outline" href="users.html">Yeni kullanıcı ekle</a>
-              <a class="btn btn-outline" href="settings.html">Bakım modunu aç</a>
-              <p class="muted">Son yedek: bugün 04:00 · başarılı</p>
-            </div>
-          </section>
-        </div>
+        <section class="card">
+          <div class="section-head"><h2>Kullanıcılar</h2></div>
+          <table class="data">
+            <thead><tr><th>Kullanıcı</th><th>E-posta</th><th>Durum</th><th>Tarih</th></tr></thead>
+            <tbody id="last-users"></tbody>
+          </table>
+        </section>
       </div>
     </div>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/db.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/admin.js"></script>
 </body>
 </html>
