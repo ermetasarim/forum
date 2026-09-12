@@ -109,65 +109,136 @@
     return colors[n % colors.length];
   }
 
+  function groupOf(name) {
+    const map = {
+      "Duyurular": "Topluluk", "Genel Sohbet": "Topluluk", "Tanışma": "Topluluk", "Yardım & Destek": "Topluluk",
+      "Teknoloji": "Teknoloji", "Yazılım": "Teknoloji", "Donanım": "Teknoloji", "Mobil": "Teknoloji",
+      "Oyun": "Kültür", "Spor": "Kültür", "Sinema & Dizi": "Kültür", "Müzik": "Kültür",
+      "Eğitim": "Yaşam", "Ekonomi": "Yaşam", "Otomobil": "Yaşam"
+    };
+    return map[name] || "Forumlar";
+  }
+
   async function renderCategory(user) {
     await mountPublic(user);
+    const root = document.getElementById("cat-root") || document.getElementById("thread-list");
     const id = UI.param("id");
     const cat = await DB.categoryById(id);
-    const title = document.getElementById("cat-title");
-    const desc = document.getElementById("cat-desc");
-    const list = document.getElementById("thread-list");
-    const newBtn = document.getElementById("new-topic-btn");
     if (!cat) {
-      if (title) title.textContent = "Forum yok";
-      if (list) list.innerHTML = UI.emptyBox("Forum yok", "", '<a class="btn btn-primary" href="index.html">Forumlar</a>');
-      if (newBtn) newBtn.style.display = "none";
+      root.innerHTML = UI.emptyBox("Forum yok", "", '<a class="btn btn-primary" href="index.html">Forumlar</a>');
       return;
     }
-    if (title) title.textContent = cat.name;
-    const crumb = document.getElementById("crumb-name");
-    if (crumb) crumb.textContent = cat.name;
-    if (desc) desc.textContent = cat.description || "";
-    if (newBtn) newBtn.href = "new-topic.html?category=" + encodeURIComponent(cat.id);
+    document.title = cat.name;
     var threads = [];
+    var latest = [];
     try { threads = await DB.categoryThreads(cat.id); } catch (e) { UI.toast(e.message, "err"); }
-    function paint(filter) {
-      var rows = threads;
-      if (filter) {
-        const q = filter.toLowerCase();
-        rows = threads.filter(function (x) { return x.title.toLowerCase().indexOf(q) !== -1; });
+    try { latest = await DB.latestTopics(9); } catch (e) {}
+    var pageSize = 12;
+    var state = { q: "", prefix: "all", page: 1 };
+
+    function filtered() {
+      var rows = threads.slice();
+      if (state.prefix === "rehber") rows = rows.filter(function (x) { return x.pinned; });
+      if (state.prefix === "cozuldu") rows = rows.filter(function (x) { return x.locked; });
+      if (state.prefix === "diger") rows = rows.filter(function (x) { return !x.pinned && !x.locked; });
+      if (state.q) {
+        const q = state.q.toLowerCase();
+        rows = rows.filter(function (x) { return x.title.toLowerCase().indexOf(q) !== -1; });
       }
-      if (!rows.length) {
-        list.innerHTML = UI.emptyBox("Konu yok", "", '<a class="btn btn-primary" href="new-topic.html?category=' + encodeURIComponent(cat.id) + '">Yeni konu</a>');
-        return;
+      return rows;
+    }
+
+    function pagerHtml(total) {
+      const pages = Math.max(1, Math.ceil(total / pageSize));
+      if (state.page > pages) state.page = pages;
+      var html = '<div class="pager">';
+      var show = [];
+      if (pages <= 6) {
+        for (var i = 1; i <= pages; i++) show.push(i);
+      } else {
+        show = [1, 2, 3, "...", pages];
       }
-      var html = '<div class="pager"><span class="page-btn on">1</span></div>';
-      html += '<section class="topic-card">';
-      html += '<div class="topic-tools"><input id="topic-filter" type="search" placeholder="Konu başlığı" /><span class="muted">Filtreler</span></div>';
-      rows.forEach(function (x) {
-        html += '<article class="topic-row">' +
-          '<div class="topic-ava" style="background:' + avatarColor(x.authorName) + '">' + UI.escapeHtml(initial(x.authorName)) + "</div>" +
-          '<div class="topic-main">' +
-          '<a class="topic-title" href="thread.html?id=' + encodeURIComponent(x.id) + '">' +
-          (x.pinned ? '<span class="badge badge-guide">Rehber</span> ' : "") +
-          UI.escapeHtml(x.title) + "</a>" +
-          '<div class="topic-sub">' + UI.escapeHtml(x.authorName) + " · " + UI.fmtTime(x.createdAt) + "</div>" +
-          "</div>" +
-          '<div class="topic-nums"><div><span>Mesaj:</span> <b>' + x.replyCount + "</b></div>" +
-          "<div><span>Görüntüleme:</span> <b>" + (x.views || 0) + "</b></div></div>" +
-          '<div class="topic-last"><div class="last-time">' + UI.fmtTime(x.lastAt) + "</div>" +
-          '<div class="last-user">' + UI.escapeHtml(x.lastName) + "</div></div></article>";
+      show.forEach(function (p) {
+        if (p === "...") html += '<span class="page-btn dots">…</span>';
+        else html += '<button type="button" class="page-btn' + (p === state.page ? " on" : "") + '" data-page="' + p + '">' + p + "</button>";
       });
-      html += "</section>";
-      list.innerHTML = html;
-      const input = document.getElementById("topic-filter");
-      if (input) {
-        input.value = filter || "";
-        input.addEventListener("keydown", function (ev) {
-          if (ev.key === "Enter") paint(input.value.trim());
+      if (state.page < pages) html += '<button type="button" class="page-btn" data-page="' + (state.page + 1) + '">Sonraki ▸</button>';
+      html += "</div>";
+      return html;
+    }
+
+    function paint() {
+      const rowsAll = filtered();
+      const pages = Math.max(1, Math.ceil(rowsAll.length / pageSize));
+      const slice = rowsAll.slice((state.page - 1) * pageSize, state.page * pageSize);
+      const rehber = threads.filter(function (x) { return x.pinned; }).length;
+      const cozuldu = threads.filter(function (x) { return x.locked; }).length;
+      const diger = threads.filter(function (x) { return !x.pinned && !x.locked; }).length;
+      var html = "";
+      html += '<nav class="crumbs">';
+      html += '<a href="index.html">Ana sayfa</a> <span>›</span> ';
+      html += '<a href="index.html">' + UI.escapeHtml(groupOf(cat.name)) + "</a> <span>›</span> ";
+      html += "<span>" + UI.escapeHtml(cat.name) + "</span></nav>";
+      html += '<div class="cat-hero">';
+      html += "<div><h1 class=\"forum-title\">" + UI.escapeHtml(cat.name) + "</h1>";
+      html += '<p class="forum-lead">' + UI.escapeHtml(cat.description || "") + "</p></div>";
+      html += '<a class="btn btn-create" href="new-topic.html?category=' + encodeURIComponent(cat.id) + '">✎ Konu oluştur</a>';
+      html += "</div>";
+      html += '<div class="prefix-bar"><span>Belirli ön ek:</span>';
+      html += '<button type="button" class="chip chip-all' + (state.prefix === "all" ? " on" : "") + '" data-prefix="all">Hepsini göster</button>';
+      html += '<button type="button" class="chip chip-ok" data-prefix="cozuldu">Çözüldü (' + cozuldu + ")</button>";
+      html += '<button type="button" class="chip chip-mid" data-prefix="cozuldu">Çözüm (0)</button>';
+      html += '<button type="button" class="chip chip-guide' + (state.prefix === "rehber" ? " on" : "") + '" data-prefix="rehber">Rehber (' + rehber + ")</button>";
+      html += '<button type="button" class="chip chip-other' + (state.prefix === "diger" ? " on" : "") + '" data-prefix="diger">Diğer (' + diger + ")</button>";
+      html += "</div>";
+      html += '<div class="cat-layout">';
+      html += '<div class="cat-main">';
+      html += pagerHtml(rowsAll.length);
+      html += '<section class="topic-card">';
+      html += '<div class="topic-tools"><span class="q-ico">?</span><input id="topic-filter" type="search" placeholder="Konu başlığı" /><button type="button" class="filter-link">Filtreler ▾</button></div>';
+      if (!slice.length) {
+        html += '<div class="empty"><h3>Konu yok</h3></div>';
+      } else {
+        slice.forEach(function (x) {
+          html += '<article class="topic-row">';
+          html += '<div class="topic-ava" style="background:' + avatarColor(x.authorName) + '">' + UI.escapeHtml(initial(x.authorName)) + "</div>";
+          html += '<div class="topic-main">';
+          html += '<a class="topic-title" href="thread.html?id=' + encodeURIComponent(x.id) + '">';
+          if (x.pinned) html += '<span class="badge badge-guide">Rehber</span> ';
+          html += UI.escapeHtml(x.title) + "</a>";
+          html += '<div class="topic-sub">' + UI.escapeHtml(x.authorName) + " · " + UI.fmtTime(x.createdAt) + "</div></div>";
+          html += '<div class="topic-nums"><div><span>Mesaj:</span> <b>' + x.replyCount + "</b></div>";
+          html += "<div><span>Görüntüleme:</span> <b>" + (x.views || 0).toLocaleString("tr-TR") + "</b></div></div>";
+          html += '<div class="topic-last"><div class="last-time">' + UI.fmtTime(x.lastAt) + "</div>";
+          html += '<div class="last-user">' + UI.escapeHtml(x.lastName) + "</div></div></article>";
         });
       }
+      html += "</section></div>";
+      html += '<aside class="side-new"><h3>Yeni konular</h3>';
+      latest.forEach(function (x) {
+        html += '<a class="new-item" href="thread.html?id=' + encodeURIComponent(x.id) + '">';
+        html += '<div class="topic-ava sm" style="background:' + avatarColor(x.authorName) + '">' + UI.escapeHtml(initial(x.authorName)) + "</div>";
+        html += "<div><div class=\"new-title\">" + UI.escapeHtml(x.title) + "</div>";
+        html += '<div class="new-meta">' + UI.escapeHtml(x.authorName) + " · " + UI.fmtTime(x.updatedAt) + " · Mesaj: " + x.replyCount + "</div>";
+        html += '<div class="new-cat">' + UI.escapeHtml(x.categoryName) + "</div></div></a>";
+      });
+      html += "</aside></div>";
+      root.innerHTML = html;
+      const input = document.getElementById("topic-filter");
+      if (input) {
+        input.value = state.q;
+        input.addEventListener("keydown", function (ev) {
+          if (ev.key === "Enter") { state.q = input.value.trim(); state.page = 1; paint(); }
+        });
+      }
+      root.querySelectorAll("[data-prefix]").forEach(function (btn) {
+        btn.addEventListener("click", function () { state.prefix = btn.getAttribute("data-prefix"); state.page = 1; paint(); });
+      });
+      root.querySelectorAll("[data-page]").forEach(function (btn) {
+        btn.addEventListener("click", function () { state.page = parseInt(btn.getAttribute("data-page"), 10); paint(); });
+      });
     }
-    paint("");
+    paint();
   }
 
   async function renderThread(user) {
