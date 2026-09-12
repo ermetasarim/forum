@@ -3,76 +3,48 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Yerel LLM’ler — Meydan</title>
+  <title>Konu — Meydan</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <header class="site-header">
-    <div class="container header-inner">
-      <a class="logo" href="index.html"><span class="logo-mark">M</span> Meydan</a>
-      <div class="search">
-        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg>
-        <input type="search" placeholder="Konu içinde ara..." />
-      </div>
-      <div class="header-actions"><span class="avatar">AY</span></div>
-    </div>
-  </header>
-
+  <div id="site-header"></div>
   <main class="container" style="padding:28px 0 60px">
-    <p class="muted" style="margin-bottom:8px"><a href="index.html">Ana sayfa</a> / <a href="category.html">Teknoloji</a> / Konu</p>
-    <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px">
-      <div>
-        <div class="chips" style="margin-bottom:8px">
-          <span class="badge badge-pin">Sabit</span>
-          <span class="badge badge-hot">Sıcak</span>
+    <div id="thread-wrap">
+      <p class="muted" style="margin-bottom:8px">
+        <a href="index.html">Ana sayfa</a> /
+        <a href="index.html" id="crumb-cat">Kategori</a> / Konu
+      </p>
+      <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+        <div>
+          <div class="chips" id="thread-flags" style="margin-bottom:8px"></div>
+          <h1 id="thread-title" style="font-size:1.55rem;letter-spacing:-.03em"></h1>
         </div>
-        <h1 style="font-size:1.55rem;letter-spacing:-.03em">Yerel LLM’leri evde çalıştırmak hâlâ mantıklı mı?</h1>
+        <div class="chips">
+          <button class="btn btn-outline btn-sm" id="pin-btn" type="button">Sabitle</button>
+          <button class="btn btn-outline btn-sm" id="lock-btn" type="button">Kilitle</button>
+          <button class="btn btn-danger btn-sm" id="del-btn" type="button">Sil</button>
+        </div>
       </div>
-      <div class="chips">
-        <button class="btn btn-outline btn-sm">Takip et</button>
-        <button class="btn btn-ghost btn-sm">Favori</button>
-      </div>
+      <section class="card">
+        <div id="posts"></div>
+        <div class="reply-box" id="reply-box">
+          <form id="reply-form">
+            <h3 style="margin-bottom:10px;font-size:1rem">Yanıt yaz</h3>
+            <textarea name="body" placeholder="Düşünceni yaz..." required></textarea>
+            <div style="display:flex;justify-content:flex-end;margin-top:10px">
+              <button class="btn btn-primary" type="submit">Gönder</button>
+            </div>
+          </form>
+        </div>
+      </section>
     </div>
-
-    <section class="card">
-      <article class="post">
-        <div class="author">
-          <div class="avatar" style="background:linear-gradient(135deg,#f59e0b,#ef4444)">MR</div>
-          <div class="author-name">Mert A.</div>
-          <div class="author-role">Moderatör</div>
-          <div class="author-meta">Üyelik: 2021<br>1.284 mesaj</div>
-        </div>
-        <div class="post-body">
-          <div class="post-meta"><span>#1 · 12 Eylül 2026, 09:14</span><span>İstanbul</span></div>
-          <div class="post-content">
-            <p>Bulut modelleri ucuzladı ama gizlilik ve gecikme hâlâ sorun. 24GB VRAM ile evde 32B sınıfı modelleri rahat çeviren var mı?</p>
-            <p>Özellikle kod tamamlama ve uzun bağlam için yerel kurulumun artı/eksilerini merak ediyorum. Kullanılan yığın: llama.cpp, vLLM, Ollama?</p>
-          </div>
-        </div>
-      </article>
-      <article class="post">
-        <div class="author">
-          <div class="avatar">EL</div>
-          <div class="author-name">Elif K.</div>
-          <div class="author-role">Yönetici</div>
-          <div class="author-meta">Üyelik: 2019<br>4.011 mesaj</div>
-        </div>
-        <div class="post-body">
-          <div class="post-meta"><span>#2 · 12 Eylül 2026, 09:31</span><span>Ankara</span></div>
-          <div class="post-content">
-            <p>Günlük yazı/özet için yerel hâlâ çok iyi. Ağır ajan işleri için API daha mantıklı. Elektrik + fan gürültüsünü de hesaba kat.</p>
-          </div>
-        </div>
-      </article>
-      <div class="reply-box">
-        <h3 style="margin-bottom:10px;font-size:1rem">Yanıt yaz</h3>
-        <textarea placeholder="Düşünceni yaz... Markdown desteklenir."></textarea>
-        <div style="display:flex;justify-content:flex-end;margin-top:10px">
-          <button class="btn btn-primary">Gönder</button>
-        </div>
-      </div>
-    </section>
   </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>

@@ -3,133 +3,45 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Meydan — Fikirlerin buluştuğu yer</title>
+  <title>Meydan</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <header class="site-header">
-    <div class="container header-inner">
-      <a class="logo" href="index.html">
-        <span class="logo-mark">M</span> Meydan
-      </a>
-      <div class="search">
-        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg>
-        <input type="search" placeholder="Konu, etiket veya üye ara..." />
-      </div>
-      <div class="header-actions">
-        <a class="btn btn-ghost" href="login.html">Giriş</a>
-        <a class="btn btn-primary" href="register.html">Kayıt Ol</a>
-        <a class="avatar" href="profile.html" title="Hesabım">AY</a>
-      </div>
-    </div>
-  </header>
-
+  <div id="site-header"></div>
   <main class="container">
-    <section class="hero">
-      <div>
-        <div class="badge badge-pin" style="margin-bottom:12px;">Yeni sezon • 12.09.2026</div>
-        <h1>Konuş, tartış, birlikte üret.</h1>
-        <p>Meydan; teknoloji, oyun, kültür ve günlük hayatı aynı çatı altında toplayan modern bir topluluk forumu. Admin paneliyle tam kontrol sende.</p>
-        <div class="hero-stats">
-          <div class="stat-pill"><b>18.420</b><span>Üye</span></div>
-          <div class="stat-pill"><b>4.812</b><span>Konu</span></div>
-          <div class="stat-pill"><b>96.3K</b><span>Mesaj</span></div>
-          <div class="stat-pill"><b>214</b><span>Çevrimiçi</span></div>
-        </div>
-      </div>
-      <div class="hero-card">
-        <h3>Bugünün öne çıkanı</h3>
-        <p style="color:#cbd5e1;font-size:.9rem;margin-bottom:12px;">“Yerel LLM’leri evde çalıştırmak hâlâ mantıklı mı?” başlığı 48 yanıt aldı.</p>
-        <a class="btn btn-primary" href="thread.html">Konuya git</a>
-      </div>
-    </section>
-
+    <div id="hero-slot"></div>
     <div class="layout">
       <div>
         <section class="card">
           <div class="section-head">
-            <h2>Kategoriler</h2>
-            <span class="muted">6 aktif bölüm</span>
+            <h2 id="list-title">Kategoriler</h2>
+            <span class="muted">Boş başlangıç</span>
           </div>
-
-          <a class="cat-row" href="category.html">
-            <div class="cat-icon" style="background:#eef2ff;color:#4f46e5;">📢</div>
-            <div>
-              <div class="cat-title">Duyurular</div>
-              <div class="cat-desc">Resmi bildirimler, bakım ve kural güncellemeleri.</div>
-            </div>
-            <div class="cat-meta"><b>128 konu</b>Son: 2 saat önce</div>
-          </a>
-          <a class="cat-row" href="category.html">
-            <div class="cat-icon" style="background:#ecfeff;color:#0891b2;">💬</div>
-            <div>
-              <div class="cat-title">Genel Sohbet</div>
-              <div class="cat-desc">Günün konusu, rastgele muhabbet, tanışma.</div>
-            </div>
-            <div class="cat-meta"><b>1.940 konu</b>Son: 4 dk önce</div>
-          </a>
-          <a class="cat-row" href="category.html">
-            <div class="cat-icon" style="background:#f5f3ff;color:#6d28d9;">⚙️</div>
-            <div>
-              <div class="cat-title">Teknoloji</div>
-              <div class="cat-desc">Yazılım, yapay zeka, donanım ve ürünler.</div>
-            </div>
-            <div class="cat-meta"><b>2.104 konu</b>Son: 11 dk önce</div>
-          </a>
-          <a class="cat-row" href="category.html">
-            <div class="cat-icon" style="background:#fff7ed;color:#c2410c;">🎮</div>
-            <div>
-              <div class="cat-title">Oyun</div>
-              <div class="cat-desc">PC, konsol, mobil; e-spor ve öneriler.</div>
-            </div>
-            <div class="cat-meta"><b>876 konu</b>Son: 31 dk önce</div>
-          </a>
-          <a class="cat-row" href="category.html">
-            <div class="cat-icon" style="background:#ecfdf5;color:#047857;">🏃</div>
-            <div>
-              <div class="cat-title">Spor & Yaşam</div>
-              <div class="cat-desc">Maç sonu, antrenman, sağlık ve rutinler.</div>
-            </div>
-            <div class="cat-meta"><b>412 konu</b>Son: 1 sa önce</div>
-          </a>
-          <a class="cat-row" href="category.html">
-            <div class="cat-icon" style="background:#fef2f2;color:#b91c1c;">🛠️</div>
-            <div>
-              <div class="cat-title">Yardım & Destek</div>
-              <div class="cat-desc">Hesap, şikayet ve teknik sorunlar.</div>
-            </div>
-            <div class="cat-meta"><b>221 konu</b>Son: 3 sa önce</div>
-          </a>
+          <div id="category-list"></div>
         </section>
       </div>
-
       <aside>
         <div class="card widget">
-          <h3>Çevrimiçi üyeler <span class="online-dot"></span></h3>
-          <div class="user-mini"><span class="avatar">EL</span><div><b>Elif K.</b><div class="muted">Yönetici</div></div></div>
-          <div class="user-mini"><span class="avatar" style="background:linear-gradient(135deg,#f59e0b,#ef4444)">MR</span><div><b>Mert A.</b><div class="muted">Moderatör</div></div></div>
-          <div class="user-mini"><span class="avatar" style="background:linear-gradient(135deg,#10b981,#06b6d4)">ZN</span><div><b>Zeynep N.</b><div class="muted">Üye</div></div></div>
-          <p class="muted" style="margin-top:8px;">ve 211 misafir</p>
+          <h3>Çevrimiçi <span class="online-dot"></span></h3>
+          <div id="online-slot"></div>
         </div>
         <div class="card widget">
-          <h3>Kurallar kısaca</h3>
-          <p class="muted">Saygı çerçevesinde yaz, kaynak belirt, reklamı özelden yürüt. Moderasyon 24 saatte yanıtlar.</p>
-        </div>
-        <div class="card widget">
-          <h3>Yönetim</h3>
-          <a class="btn btn-outline" href="admin/dashboard.html" style="width:100%">Admin paneline git</a>
+          <h3>Erişim</h3>
+          <p class="muted">Yalnızca admin rolü giriş yapabilir. Üye kaydı kapalı.</p>
         </div>
       </aside>
     </div>
   </main>
-
   <footer class="footer">
-    <div class="container" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
-      <span>© 2026 Meydan Forum</span>
-      <span>Gizlilik · Kurallar · İletişim</span>
-    </div>
+    <div class="container">© 2026 Meydan Forum</div>
   </footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>

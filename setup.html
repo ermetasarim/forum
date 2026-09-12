@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kurulum — Meydan</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="auth-wrap">
+    <div class="card auth-card" style="width:min(720px,100%)">
+      <a class="logo" href="login.html"><span class="logo-mark">M</span> Meydan</a>
+      <h1>Supabase kurulumu</h1>
+      <p class="muted" id="status" style="margin-bottom:16px">Proje anahtarı alındı. Tablolar henüz yok.</p>
+      <ol class="muted" style="padding-left:18px;margin-bottom:16px;display:grid;gap:8px">
+        <li>Supabase Dashboard → SQL Editor</li>
+        <li>Aşağıdaki SQL’i yapıştır, Run’a bas</li>
+        <li>Authentication → Providers → Email → <b>Confirm email</b> kapat <i>veya</i> Gmail’deki doğrulama linkine tıkla</li>
+        <li><a href="login.html" style="color:var(--primary);font-weight:700">Girişe dön</a></li>
+      </ol>
+      <pre id="sql" style="white-space:pre-wrap;background:#0b1220;color:#e2e8f0;padding:14px;border-radius:12px;max-height:320px;overflow:auto;font-size:12px"></pre>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn btn-primary" id="copy" type="button">SQL’i kopyala</button>
+        <button class="btn btn-outline" id="recheck" type="button">Tekrar kontrol et</button>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    async function check() {
+      const h = await MeydanDB.health();
+      document.getElementById("status").textContent = h.ok
+        ? "Tablolar hazır. Giriş yapabilirsin."
+        : "Tablolar henüz yok: " + ((h.error && h.error.message) || h.reason);
+    }
+    fetch("supabase/schema.sql").then(r => r.text()).then(t => { document.getElementById("sql").textContent = t; });
+    document.getElementById("copy").onclick = async () => {
+      const t = document.getElementById("sql").textContent;
+      await navigator.clipboard.writeText(t);
+      alert("Kopyalandı");
+    };
+    document.getElementById("recheck").onclick = check;
+    check();
+  </script>
+</body>
+</html>

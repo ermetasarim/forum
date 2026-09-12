@@ -10,26 +10,28 @@
 <body>
   <div class="auth-wrap">
     <div class="card auth-card">
-      <a class="logo" href="index.html"><span class="logo-mark">M</span> Meydan</a>
-      <h1>Tekrar hoş geldin</h1>
-      <p class="muted" style="margin-bottom:20px">Hesabınla giriş yap, tartışmaya dön.</p>
-      <form action="index.html">
+      <a class="logo" href="login.html"><span class="logo-mark">M</span> Meydan</a>
+      <h1>Yönetici girişi</h1>
+      <p class="muted" style="margin-bottom:20px">Site yalnızca admin rolüne açık. Üye kaydı kapalı.</p>
+      <form id="login-form">
         <div class="form-group">
-          <label>E-posta veya kullanıcı adı</label>
-          <input type="text" placeholder="elif@meydan.com" />
+          <label>E-posta</label>
+          <input name="email" type="email" required value="ermetasarim@gmail.com" />
         </div>
         <div class="form-group">
           <label>Şifre</label>
-          <input type="password" placeholder="••••••••" />
+          <input name="password" type="password" required />
         </div>
-        <div style="display:flex;justify-content:space-between;margin-bottom:16px;font-size:.85rem">
-          <label><input type="checkbox" checked /> Beni hatırla</label>
-          <a href="#" style="color:var(--primary);font-weight:700">Şifremi unuttum</a>
-        </div>
-        <button class="btn btn-primary" style="width:100%">Giriş yap</button>
+        <button class="btn btn-primary" style="width:100%" type="submit">Giriş yap</button>
       </form>
-      <p class="muted" style="margin-top:16px;text-align:center">Hesabın yok mu? <a href="register.html" style="color:var(--primary);font-weight:700">Kayıt ol</a></p>
+      <p class="muted" style="margin-top:16px;text-align:center">Kayıt alınmıyor.</p>
     </div>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>

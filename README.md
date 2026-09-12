@@ -1,26 +1,31 @@
-# Meydan Forum — UI prototipi
+# Meydan Forum
 
-Admin panelli, Türkçe arayüzlü modern forum tasarımı.
+Calisan arayuz prototipi. Kayit kapali. Tek admin:
 
-## Sayfalar
+- Ad: Erdem
+- E-posta: ermetasarim@gmail.com
+- Rol: admin
 
-### Kullanıcı tarafı
-- `index.html` — Ana sayfa, kategoriler, çevrimiçi üyeler
-- `category.html` — Konu listesi
-- `thread.html` — Konu + yanıtlar
-- `login.html` / `register.html` — Kimlik
-- `profile.html` — Profil
+Uyeler, kategoriler ve konular bostan baslar.
 
-### Admin paneli (`/admin`)
-- `dashboard.html` — KPI, son kayıtlar, hızlı işlemler
-- `users.html` — Rol, ban, onay
-- `moderation.html` — Rapor kuyruğu
-- `categories.html` — Bölüm yönetimi
-- `settings.html` — Site ayarları
-- `reports.html` — İstatistikler
+## Acilis
 
-## Çalıştırma
+login.html dosyasini tarayicida ac. Giristen sonra sayfalar ve admin paneli calisir.
 
-Tarayıcıda `index.html` dosyasını açman yeterli. Backend yoktur; bu bir arayüz tasarımı / ön yüz prototipidir.
+Yerel veri localStorage icindedir (anahtar: meydan.v3). Eski demo icerik kullanilmaz.
 
-Sonraki adım önerisi: Node/Express veya Laravel ile auth, konu/yanıt CRUD ve rol tabanlı yetki eklemek.
+## Ne calisir?
+
+- Admin girisi / cikis
+- Admin olmayan veya kayit denemesi reddedilir
+- Kategori ekleme / silme
+- Konu acma, yanit, sabitle, kilitle, sil
+- Arama
+- Ayar kaydi
+- Veriyi sifirla (admin haric her sey)
+
+## Supabase
+
+js/config.js icindeki supabaseUrl ve supabaseAnonKey bos.
+
+Veri veya proje anahtarlarini verdiginde schema.sql calistirilacak ve baglanti kurulacak.
