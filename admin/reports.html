@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin · Raporlar — Meydan</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+  <div class="admin-shell">
+    <aside class="admin-sidebar">
+      <div class="admin-brand"><span class="logo-mark">M</span> Meydan Admin</div>
+      <div class="nav-label">Genel</div>
+      <a class="nav-link" href="dashboard.html">📊 Kontrol paneli</a>
+      <a class="nav-link" href="users.html">👥 Kullanıcılar</a>
+      <a class="nav-link" href="moderation.html">🛡️ Moderasyon</a>
+      <a class="nav-link" href="categories.html">📁 Kategoriler</a>
+      <div class="nav-label">Sistem</div>
+      <a class="nav-link" href="settings.html">⚙️ Ayarlar</a>
+      <a class="nav-link active" href="reports.html">📈 Raporlar</a>
+      <a class="nav-link" href="../index.html">↩ Siteye dön</a>
+    </aside>
+    <div class="admin-main">
+      <div class="admin-top">
+        <div><b>Raporlar</b><div class="muted">Son 30 gün</div></div>
+        <button class="btn btn-outline btn-sm">CSV indir</button>
+      </div>
+      <div class="admin-content">
+        <div class="kpi-grid">
+          <div class="card kpi"><div class="label">Günlük aktif</div><div class="value">2.184</div><div class="delta up">+6%</div></div>
+          <div class="card kpi"><div class="label">Yeni konu / gün</div><div class="value">63</div><div class="delta up">+4%</div></div>
+          <div class="card kpi"><div class="label">Yanıt / gün</div><div class="value">411</div><div class="delta down">-2%</div></div>
+          <div class="card kpi"><div class="label">Rapor çözülme</div><div class="value">3.4s</div><div class="delta up">hedefin altında</div></div>
+        </div>
+        <section class="card" style="padding:22px">
+          <h2 style="margin-bottom:8px;font-size:1rem">Aktivite özeti</h2>
+          <p class="muted">Teknoloji kategorisi trafiğin %38’ini taşıyor. Akşam 21:00–23:30 zirve saatleri. Ban oranı %0.4 ile sağlıklı.</p>
+          <div style="margin-top:18px;height:140px;border-radius:12px;background:linear-gradient(180deg,#eef2ff, #fff);border:1px dashed var(--border);display:grid;place-items:center;color:var(--text-muted)">
+            Grafik alanı — gerçek veride Chart.js bağlanır
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
