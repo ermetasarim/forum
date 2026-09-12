@@ -415,3 +415,17 @@ table.data td { padding: 9px 10px; border-bottom: 1px solid var(--line); }
   .pb-ava { width: 48px; height: 48px; font-size: 18px; margin: 0; }
   .pb-stats, .pb-icons { display: none; }
 }
+
+.board-stats-row {
+  display: grid; grid-template-columns: repeat(5, minmax(0,1fr));
+  gap: 0; padding: 12px 6px;
+}
+.bs { text-align: center; padding: 6px 8px; border-right: 1px solid #eef2f6; }
+.bs:last-child { border-right: 0; }
+.bs span { display: block; color: #8b98a6; font-size: 12px; margin-bottom: 2px; }
+.bs b { font-size: 18px; color: #2a3340; font-weight: 800; }
+.stats-online { border-top: 1px solid #eef2f6; padding: 10px 16px; color: #66727c; font-size: 13px; }
+@media (max-width: 720px) {
+  .board-stats-row { grid-template-columns: 1fr 1fr; }
+  .bs { border-right: 0; border-bottom: 1px solid #eef2f6; }
+}
