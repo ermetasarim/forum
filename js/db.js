@@ -120,7 +120,7 @@
       const res = await q.order("pinned", { ascending: false }).order("updated_at", { ascending: false });
       fail(res.error);
       return (res.data || []).map(function (t) {
-        return { id: t.id, categoryId: t.category_id, title: t.title, authorId: t.author_id, pinned: t.pinned, locked: t.locked, createdAt: Date.parse(t.created_at), updatedAt: Date.parse(t.updated_at) };
+        return { id: t.id, categoryId: t.category_id, title: t.title, authorId: t.author_id, pinned: t.pinned, locked: t.locked, views: t.views || 0, createdAt: Date.parse(t.created_at), updatedAt: Date.parse(t.updated_at) };
       });
     },
     async topicById(id) {
@@ -128,6 +128,42 @@
       fail(res.error);
       if (!res.data) return null;
       return { id: res.data.id, categoryId: res.data.category_id, title: res.data.title, authorId: res.data.author_id, pinned: res.data.pinned, locked: res.data.locked, createdAt: Date.parse(res.data.created_at), updatedAt: Date.parse(res.data.updated_at) };
+    },
+    async categoryThreads(categoryId) {
+      const topics = await this.topics(categoryId);
+      if (!topics.length) return [];
+      const ids = topics.map(function (x) { return x.id; });
+      const posts = await sb.from("posts").select("id,topic_id,author_id,created_at").in("topic_id", ids).order("created_at", { ascending: false });
+      var authorIds = [];
+      topics.forEach(function (x) { if (x.authorId) authorIds.push(x.authorId); });
+      (posts.data || []).forEach(function (row) { if (row.author_id) authorIds.push(row.author_id); });
+      var uniq = [];
+      authorIds.forEach(function (id) { if (uniq.indexOf(id) === -1) uniq.push(id); });
+      const prof = uniq.length ? await sb.from("profiles").select("id,name,username").in("id", uniq) : { data: [] };
+      var names = {};
+      (prof.data || []).forEach(function (u) { names[u.id] = u.name || u.username; });
+      var byTopic = {};
+      (posts.data || []).forEach(function (row) {
+        if (!byTopic[row.topic_id]) byTopic[row.topic_id] = [];
+        byTopic[row.topic_id].push(row);
+      });
+      return topics.map(function (x) {
+        const list = byTopic[x.id] || [];
+        const last = list[0];
+        return {
+          id: x.id,
+          title: x.title,
+          pinned: x.pinned,
+          locked: x.locked,
+          views: x.views || 0,
+          createdAt: x.createdAt,
+          authorId: x.authorId,
+          authorName: names[x.authorId] || "—",
+          replyCount: Math.max(0, list.length - 1),
+          lastName: last ? (names[last.author_id] || "—") : (names[x.authorId] || "—"),
+          lastAt: last ? Date.parse(last.created_at) : x.updatedAt
+        };
+      });
     },
     async topicCounts(categoryId) {
       const list = await this.topics(categoryId);

@@ -99,6 +99,16 @@
     }
   }
 
+  function initial(name) {
+    return String(name || "?").trim().charAt(0).toUpperCase();
+  }
+  function avatarColor(name) {
+    const colors = ["#3aa66b", "#4b5563", "#2563eb", "#0f766e", "#b45309", "#7c3aed", "#be123c"];
+    var n = 0;
+    String(name || "").split("").forEach(function (ch) { n += ch.charCodeAt(0); });
+    return colors[n % colors.length];
+  }
+
   async function renderCategory(user) {
     await mountPublic(user);
     const id = UI.param("id");
@@ -118,24 +128,46 @@
     if (crumb) crumb.textContent = cat.name;
     if (desc) desc.textContent = cat.description || "";
     if (newBtn) newBtn.href = "new-topic.html?category=" + encodeURIComponent(cat.id);
-    const topics = await DB.topics(cat.id);
-    if (!topics.length) {
-      list.innerHTML = UI.emptyBox("Konu yok", "", '<a class="btn btn-primary" href="new-topic.html?category=' + encodeURIComponent(cat.id) + '">Yeni konu</a>');
-      return;
+    var threads = [];
+    try { threads = await DB.categoryThreads(cat.id); } catch (e) { UI.toast(e.message, "err"); }
+    function paint(filter) {
+      var rows = threads;
+      if (filter) {
+        const q = filter.toLowerCase();
+        rows = threads.filter(function (x) { return x.title.toLowerCase().indexOf(q) !== -1; });
+      }
+      if (!rows.length) {
+        list.innerHTML = UI.emptyBox("Konu yok", "", '<a class="btn btn-primary" href="new-topic.html?category=' + encodeURIComponent(cat.id) + '">Yeni konu</a>');
+        return;
+      }
+      var html = '<div class="pager"><span class="page-btn on">1</span></div>';
+      html += '<section class="topic-card">';
+      html += '<div class="topic-tools"><input id="topic-filter" type="search" placeholder="Konu başlığı" /><span class="muted">Filtreler</span></div>';
+      rows.forEach(function (x) {
+        html += '<article class="topic-row">' +
+          '<div class="topic-ava" style="background:' + avatarColor(x.authorName) + '">' + UI.escapeHtml(initial(x.authorName)) + "</div>" +
+          '<div class="topic-main">' +
+          '<a class="topic-title" href="thread.html?id=' + encodeURIComponent(x.id) + '">' +
+          (x.pinned ? '<span class="badge badge-guide">Rehber</span> ' : "") +
+          UI.escapeHtml(x.title) + "</a>" +
+          '<div class="topic-sub">' + UI.escapeHtml(x.authorName) + " · " + UI.fmtTime(x.createdAt) + "</div>" +
+          "</div>" +
+          '<div class="topic-nums"><div><span>Mesaj:</span> <b>' + x.replyCount + "</b></div>" +
+          "<div><span>Görüntüleme:</span> <b>" + (x.views || 0) + "</b></div></div>" +
+          '<div class="topic-last"><div class="last-time">' + UI.fmtTime(x.lastAt) + "</div>" +
+          '<div class="last-user">' + UI.escapeHtml(x.lastName) + "</div></div></article>";
+      });
+      html += "</section>";
+      list.innerHTML = html;
+      const input = document.getElementById("topic-filter");
+      if (input) {
+        input.value = filter || "";
+        input.addEventListener("keydown", function (ev) {
+          if (ev.key === "Enter") paint(input.value.trim());
+        });
+      }
     }
-    var html = '<div class="thread-head"><span>Konu</span><span>Yazan</span><span>Yanıt</span><span>Son mesaj</span></div>';
-    for (const t of topics) {
-      const replies = Math.max(0, (await DB.posts(t.id)).length - 1);
-      const author = await DB.userById(t.authorId);
-      html += '<a class="thread-row" href="thread.html?id=' + encodeURIComponent(t.id) + '"><div>' +
-        (t.pinned ? '<span class="badge badge-pin">Sabit</span>' : "") +
-        (t.locked ? '<span class="badge badge-lock">Kilitli</span>' : "") +
-        '<span class="f-title">' + UI.escapeHtml(t.title) + "</span></div>" +
-        '<div class="f-last">' + UI.escapeHtml(author ? author.name : "—") + "</div>" +
-        '<div class="f-num">' + replies + "</div>" +
-        '<div class="f-last">' + UI.fmtTime(t.updatedAt) + "</div></a>";
-    }
-    list.innerHTML = html;
+    paint("");
   }
 
   async function renderThread(user) {
