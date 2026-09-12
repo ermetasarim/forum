@@ -11,32 +11,36 @@
 
   async function renderIndex(user) {
     await mountPublic(user);
-    let stats = { users: 1, topics: 0, posts: 0, categories: 0 };
-    let cats = [];
-    const health = await DB.health();
+    const board = document.getElementById("board");
+    if (board) board.innerHTML = '<section class="board"><div class="board-h"><b>Forumlar</b></div><div class="empty"><p>Yükleniyor…</p></div></section>';
+    const q = UI.param("q");
+    var sourceCats = [];
+    var extraTopics = [];
+    var allTopics = [];
     try {
-      if (health.ok) {
-        stats = await DB.stats();
-        cats = await DB.categories();
+      if (q) {
+        const search = await DB.search(q);
+        sourceCats = search.categories || [];
+        extraTopics = search.topics || [];
+      } else {
+        const data = await DB.boardIndex();
+        sourceCats = (data.categories || []).map(function (c) {
+          return { id: c.id, name: c.name, description: c.description || "", icon: c.icon || "●" };
+        });
+        allTopics = data.topics || [];
       }
     } catch (e) {
-      UI.toast(e.message, "err");
+      if (board) board.innerHTML = '<section class="board">' + UI.emptyBox("Liste alınamadı", e.message, "") + "</section>";
+      return;
     }
-    const q = UI.param("q");
-    const search = q && health.ok ? await DB.search(q) : null;
-    const sourceCats = search ? search.categories : cats;
-    const sourceTopics = search ? search.topics : [];
-    const board = document.getElementById("board");
     if (board) {
-      if (!sourceCats.length && !sourceTopics.length) {
-        board.innerHTML = '<section class="board">' + UI.emptyBox(q ? "Sonuç yok" : "Forum yok", "", health.ok ? '<a class="btn btn-primary" href="admin/categories.html">Forum ekle</a>' : '<a class="btn btn-primary" href="setup.html">Kurulum</a>') + "</section>";
+      if (!sourceCats.length && !extraTopics.length) {
+        board.innerHTML = '<section class="board">' + UI.emptyBox(q ? "Sonuç yok" : "Forum yok", "", '<a class="btn btn-primary" href="admin/categories.html">Forum ekle</a>') + "</section>";
       } else {
         var html = '<section class="board"><div class="board-h"><b>' + (q ? "Arama" : "Forumlar") + '</b></div>';
-        html += '<div class="forum-head"><span>Forum</span><span>Konu</span><span>Mesaj</span><span>Son mesaj</span></div>';
-        for (const c of sourceCats) {
-          const topics = health.ok ? await DB.topics(c.id) : [];
-          var postCount = 0;
-          for (const t of topics) postCount += (await DB.posts(t.id)).length;
+        html += '<div class="forum-head"><span>Forum</span><span>Konu</span><span>Son mesaj</span></div>';
+        sourceCats.forEach(function (c) {
+          const topics = allTopics.filter(function (t) { return t.category_id === c.id; });
           const last = topics[0] || null;
           html += '<a class="forum-row" href="category.html?id=' + encodeURIComponent(c.id) + '">' +
             '<div class="f-main"><div class="f-ico">' + UI.escapeHtml(c.icon || "●") + '</div><div>' +
@@ -44,11 +48,10 @@
             (c.description ? '<div class="f-desc">' + UI.escapeHtml(c.description) + "</div>" : "") +
             "</div></div>" +
             '<div class="f-num">' + topics.length + "</div>" +
-            '<div class="f-num">' + postCount + "</div>" +
-            '<div class="f-last">' + (last ? "<b>" + UI.escapeHtml(last.title) + "</b>" + UI.fmtTime(last.updatedAt) : "—") + "</div></a>";
-        }
-        (sourceTopics || []).forEach(function (t) {
-          html += '<a class="forum-row" href="thread.html?id=' + encodeURIComponent(t.id) + '"><div class="f-main"><div class="f-ico">▸</div><div><div class="f-title">' + UI.escapeHtml(t.title) + "</div></div></div><div></div><div></div><div class=\"f-last\">" + UI.fmtTime(t.updatedAt) + "</div></a>";
+            '<div class="f-last">' + (last ? "<b>" + UI.escapeHtml(last.title) + "</b>" + UI.fmtTime(Date.parse(last.updated_at || last.updatedAt)) : "—") + "</div></a>";
+        });
+        extraTopics.forEach(function (t) {
+          html += '<a class="forum-row" href="thread.html?id=' + encodeURIComponent(t.id) + '"><div class="f-main"><div class="f-ico">▸</div><div><div class="f-title">' + UI.escapeHtml(t.title) + "</div></div></div><div></div><div class=\"f-last\">" + UI.fmtTime(t.updatedAt) + "</div></a>";
         });
         html += "</section>";
         board.innerHTML = html;
@@ -57,7 +60,7 @@
     const box = document.getElementById("board-stats");
     if (box) {
       box.innerHTML = '<section class="board stats-box"><div class="board-h"><b>İstatistik</b></div>' +
-        '<div class="stats-grid"><div class="stats-cell">Konu: <b>' + stats.topics + "</b> · Mesaj: <b>" + stats.posts + "</b> · Üye: <b>" + stats.users + "</b></div>" +
+        '<div class="stats-grid"><div class="stats-cell">Forum: <b>' + sourceCats.length + "</b> · Konu: <b>" + allTopics.length + "</b></div>" +
         '<div class="stats-cell">Çevrimiçi <span class="online-dot"></span> <b>' + UI.escapeHtml(user.name) + "</b></div></div></section>";
     }
   }

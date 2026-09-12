@@ -26,7 +26,7 @@
     document.getElementById("kpi-topics").textContent = s.topics;
     document.getElementById("kpi-reports").textContent = s.openReports;
     document.getElementById("kpi-online").textContent = s.online;
-    const users = await DB.users();
+    const users = await DB.users(8);
     document.getElementById("last-users").innerHTML = users.map(function (u) {
       return "<tr><td>" + UI.escapeHtml(u.name) + '<div class="muted">' + UI.escapeHtml(u.email) + "</div></td><td>" + UI.escapeHtml(u.email) + '</td><td><span class="badge badge-ok">' + UI.escapeHtml(u.status) + "</span></td><td>" + UI.fmtTime(u.createdAt) + "</td></tr>";
     }).join("") || "<tr><td colspan='4'>Kayit yok</td></tr>";
@@ -39,10 +39,12 @@
   }
 
   if (page === "users.html") {
-    const users = await DB.users();
+    const users = await DB.users(40);
     document.getElementById("users-body").innerHTML = users.map(function (u) {
-      return "<tr><td><b>" + UI.escapeHtml(u.name) + '</b><div class="muted">' + UI.escapeHtml(u.email) + "</div></td><td>" + UI.escapeHtml(u.role) + "</td><td>" + (u.messages || 0) + '</td><td><span class="badge badge-ok">' + UI.escapeHtml(u.status) + '</span></td><td class="muted">Tek admin</td></tr>';
+      return "<tr><td><b>" + UI.escapeHtml(u.name) + '</b><div class="muted">' + UI.escapeHtml(u.email) + "</div></td><td>" + UI.escapeHtml(u.role) + "</td><td>" + (u.messages || 0) + '</td><td><span class="badge badge-ok">' + UI.escapeHtml(u.status) + "</span></td><td class=\"muted\">" + (u.role === "admin" ? "Admin" : "") + "</td></tr>";
     }).join("");
+    const more = document.getElementById("users-more");
+    if (more) more.textContent = users.length + " üye";
     document.getElementById("add-user-btn").addEventListener("click", function () {
       UI.toast("Yeni uye ekleme kapali. Yalnizca admin girebilir.", "err");
     });

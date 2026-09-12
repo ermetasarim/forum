@@ -45,12 +45,21 @@
       fail(res.error);
       return this.settings();
     },
-    async users() {
-      const res = await sb.from("profiles").select("*").order("created_at", { ascending: false });
-      fail(res.error);
+    async users(limit) {
+      var q = sb.from("profiles").select("*").order("created_at", { ascending: false });
+      if (limit) q = q.limit(limit);
+      const res = await q;
+      if (res.error) return [];
       return (res.data || []).map(function (u) {
         return { id: u.id, name: u.name, username: u.username, email: u.email, role: u.role, status: u.status, messages: u.messages || 0, createdAt: u.created_at ? Date.parse(u.created_at) : Date.now() };
       });
+    },
+    async boardIndex() {
+      const cats = await sb.from("categories").select("*").order("sort_order", { ascending: true });
+      fail(cats.error);
+      const topics = await sb.from("topics").select("id,category_id,title,updated_at,author_id,pinned,locked").order("updated_at", { ascending: false });
+      if (topics.error) return { categories: cats.data || [], topics: [] };
+      return { categories: cats.data || [], topics: topics.data || [] };
     },
     async userById(id) {
       if (!id) return null;
@@ -170,12 +179,15 @@
       fail(res.error);
     },
     async stats() {
-      const users = await sb.from("profiles").select("id", { count: "exact", head: true });
       const topics = await sb.from("topics").select("id", { count: "exact", head: true });
       const posts = await sb.from("posts").select("id", { count: "exact", head: true });
       const categories = await sb.from("categories").select("id", { count: "exact", head: true });
-      const reports = await sb.from("reports").select("id", { count: "exact", head: true }).eq("status", "open");
-      return { users: users.count || 0, topics: topics.count || 0, posts: posts.count || 0, categories: categories.count || 0, openReports: reports.count || 0, online: 1 };
+      var userCount = 1;
+      try {
+        const users = await sb.from("profiles").select("id", { count: "exact", head: true }).limit(1);
+        if (!users.error) userCount = users.count || 1;
+      } catch (e) {}
+      return { users: userCount, topics: topics.count || 0, posts: posts.count || 0, categories: categories.count || 0, openReports: 0, online: 1 };
     },
     async search(q) {
       const query = String(q || "").trim();
