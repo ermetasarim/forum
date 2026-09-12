@@ -3,22 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Konu — Meydan</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <title>Konu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
   <div id="site-header"></div>
-  <main class="container" style="padding:28px 0 60px">
+  <main class="container page">
     <div id="thread-wrap">
-      <p class="muted" style="margin-bottom:8px">
-        <a href="index.html">Ana sayfa</a> /
-        <a href="index.html" id="crumb-cat">Kategori</a> / Konu
-      </p>
-      <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+      <div class="crumbs">
+        <a href="index.html">Forumlar</a> /
+        <a href="index.html" id="crumb-cat">Forum</a>
+      </div>
+      <div class="toolbar">
         <div>
-          <div class="chips" id="thread-flags" style="margin-bottom:8px"></div>
-          <h1 id="thread-title" style="font-size:1.55rem;letter-spacing:-.03em"></h1>
+          <div id="thread-flags" style="margin-bottom:4px"></div>
+          <h1 class="page-title" id="thread-title"></h1>
         </div>
         <div class="chips">
           <button class="btn btn-outline btn-sm" id="pin-btn" type="button">Sabitle</button>
@@ -26,13 +27,12 @@
           <button class="btn btn-danger btn-sm" id="del-btn" type="button">Sil</button>
         </div>
       </div>
-      <section class="card">
+      <section class="board">
         <div id="posts"></div>
         <div class="reply-box" id="reply-box">
           <form id="reply-form">
-            <h3 style="margin-bottom:10px;font-size:1rem">Yanıt yaz</h3>
-            <textarea name="body" placeholder="Düşünceni yaz..." required></textarea>
-            <div style="display:flex;justify-content:flex-end;margin-top:10px">
+            <textarea name="body" placeholder="Yanıt" required></textarea>
+            <div style="display:flex;justify-content:flex-end;margin-top:8px">
               <button class="btn btn-primary" type="submit">Gönder</button>
             </div>
           </form>

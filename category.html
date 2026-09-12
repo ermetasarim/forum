@@ -3,25 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kategori — Meydan</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <title>Forum</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
   <div id="site-header"></div>
-  <main class="container" style="padding:28px 0 60px">
-    <p class="muted" style="margin-bottom:8px"><a href="index.html">Ana sayfa</a> / <span id="crumb-name">Kategori</span></p>
-    <div style="display:flex;justify-content:space-between;align-items:end;margin-bottom:18px;gap:12px;flex-wrap:wrap">
-      <div>
-        <h1 id="cat-title" style="letter-spacing:-.03em">Kategori</h1>
-        <p class="muted" id="cat-desc"></p>
-      </div>
+  <main class="container page">
+    <div class="crumbs"><a href="index.html">Forumlar</a> / <span id="crumb-name">Forum</span></div>
+    <div class="toolbar">
+      <h1 class="page-title" id="cat-title">Forum</h1>
       <a class="btn btn-primary" id="new-topic-btn" href="new-topic.html">Yeni konu</a>
     </div>
-    <section class="card">
-      <div class="section-head"><h2>Konular</h2></div>
-      <div id="thread-list"></div>
-    </section>
+    <p class="muted" id="cat-desc" style="margin:-6px 0 10px"></p>
+    <section class="board" id="thread-list"></section>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js"></script>

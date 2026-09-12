@@ -3,21 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Profil — Meydan</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <title>Profil</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
   <div id="site-header"></div>
-  <main class="container" style="padding:28px 0 60px">
-    <section class="card" style="padding:28px;display:flex;gap:22px;align-items:center;flex-wrap:wrap">
-      <div class="avatar" id="prof-avatar" style="width:84px;height:84px;font-size:1.6rem">ER</div>
-      <div style="flex:1">
-        <h1 id="prof-name" style="letter-spacing:-.03em">Erdem</h1>
+  <main class="container page">
+    <div class="crumbs"><a href="index.html">Forumlar</a> / Profil</div>
+    <section class="card" style="padding:18px;display:flex;gap:16px;align-items:center">
+      <div class="avatar" id="prof-avatar" style="width:64px;height:64px;font-size:20px">ER</div>
+      <div>
+        <h1 class="page-title" id="prof-name">Erdem</h1>
         <p class="muted" id="prof-meta"></p>
-        <div class="chips" style="margin-top:10px">
-          <span class="badge badge-ok">Admin</span>
-          <span class="badge badge-pin" id="prof-msg">0 mesaj</span>
+        <div class="chips" style="margin-top:8px">
+          <span class="badge badge-ok">Yönetici</span>
+          <span class="muted" id="prof-msg">0 mesaj</span>
         </div>
       </div>
     </section>

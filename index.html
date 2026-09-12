@@ -3,40 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Meydan</title>
+  <title>Forum</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
   <div id="site-header"></div>
-  <main class="container">
-    <div id="hero-slot"></div>
-    <div class="layout">
-      <div>
-        <section class="card">
-          <div class="section-head">
-            <h2 id="list-title">Kategoriler</h2>
-            <span class="muted">Boş başlangıç</span>
-          </div>
-          <div id="category-list"></div>
-        </section>
-      </div>
-      <aside>
-        <div class="card widget">
-          <h3>Çevrimiçi <span class="online-dot"></span></h3>
-          <div id="online-slot"></div>
-        </div>
-        <div class="card widget">
-          <h3>Erişim</h3>
-          <p class="muted">Yalnızca admin rolü giriş yapabilir. Üye kaydı kapalı.</p>
-        </div>
-      </aside>
-    </div>
+  <main class="container page">
+    <div class="crumbs">Forumlar</div>
+    <div id="board"></div>
+    <div id="board-stats"></div>
   </main>
-  <footer class="footer">
-    <div class="container">© 2026 Meydan Forum</div>
-  </footer>
+  <footer class="site-footer"><div class="container">Meydan</div></footer>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js"></script>
   <script src="js/db.js"></script>

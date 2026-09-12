@@ -3,29 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Yeni konu — Meydan</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <title>Yeni konu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
   <div id="site-header"></div>
-  <main class="container" style="padding:28px 0 60px;max-width:760px">
-    <h1 style="margin-bottom:16px;letter-spacing:-.03em">Yeni konu</h1>
-    <section class="card" id="new-topic-card" style="padding:22px">
+  <main class="container page" style="max-width:760px">
+    <div class="crumbs"><a href="index.html">Forumlar</a> / Yeni konu</div>
+    <h1 class="page-title" style="margin-bottom:12px">Yeni konu</h1>
+    <section class="card" id="new-topic-card" style="padding:16px">
       <form id="new-topic-form">
-        <div class="form-group">
-          <label>Kategori</label>
-          <select id="topic-cat" name="category" required></select>
-        </div>
-        <div class="form-group">
-          <label>Başlık</label>
-          <input name="title" required placeholder="Konu başlığı" />
-        </div>
-        <div class="form-group">
-          <label>İlk mesaj</label>
-          <textarea name="body" rows="7" required placeholder="Konuyu aç..."></textarea>
-        </div>
-        <button class="btn btn-primary" type="submit">Konuyu aç</button>
+        <div class="form-group"><label>Forum</label><select id="topic-cat" name="category" required></select></div>
+        <div class="form-group"><label>Başlık</label><input name="title" required /></div>
+        <div class="form-group"><label>Mesaj</label><textarea name="body" rows="8" required></textarea></div>
+        <button class="btn btn-primary" type="submit">Gönder</button>
       </form>
     </section>
   </main>
