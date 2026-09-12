@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin · Moderasyon — Meydan</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+  <div class="admin-shell">
+    <aside class="admin-sidebar">
+      <div class="admin-brand"><span class="logo-mark">M</span> Meydan Admin</div>
+      <div class="nav-label">Genel</div>
+      <a class="nav-link" href="dashboard.html">📊 Kontrol paneli</a>
+      <a class="nav-link" href="users.html">👥 Kullanıcılar</a>
+      <a class="nav-link active" href="moderation.html">🛡️ Moderasyon</a>
+      <a class="nav-link" href="categories.html">📁 Kategoriler</a>
+      <div class="nav-label">Sistem</div>
+      <a class="nav-link" href="settings.html">⚙️ Ayarlar</a>
+      <a class="nav-link" href="reports.html">📈 Raporlar</a>
+      <a class="nav-link" href="../index.html">↩ Siteye dön</a>
+    </aside>
+    <div class="admin-main">
+      <div class="admin-top">
+        <div><b>Moderasyon kuyruğu</b><div class="muted">7 açık rapor</div></div>
+        <button class="btn btn-outline btn-sm">Toplu işlem</button>
+      </div>
+      <div class="admin-content">
+        <section class="card">
+          <table class="data">
+            <thead><tr><th>İçerik</th><th>Sebep</th><th>Raporlayan</th><th>Öncelik</th><th>İşlem</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>Konu: “Bedava takipçi...”</td>
+                <td>Spam</td>
+                <td>Elif K.</td>
+                <td><span class="badge badge-off">Yüksek</span></td>
+                <td>
+                  <button class="btn btn-danger btn-sm">Sil</button>
+                  <button class="btn btn-ghost btn-sm">Yoksay</button>
+                </td>
+              </tr>
+              <tr>
+                <td>Yanıt #88421</td>
+                <td>Hakaret</td>
+                <td>Zeynep N.</td>
+                <td><span class="badge badge-warn">Orta</span></td>
+                <td>
+                  <button class="btn btn-outline btn-sm">Düzenle</button>
+                  <button class="btn btn-ghost btn-sm">Kilit</button>
+                </td>
+              </tr>
+              <tr>
+                <td>Kullanıcı: guest_992</td>
+                <td>Çoklu hesap</td>
+                <td>Sistem</td>
+                <td><span class="badge badge-warn">Orta</span></td>
+                <td>
+                  <button class="btn btn-danger btn-sm">Ban</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
