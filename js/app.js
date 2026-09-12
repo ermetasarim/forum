@@ -11,7 +11,6 @@
 
   async function renderIndex(user) {
     await mountPublic(user);
-    const settings = await DB.settings();
     let stats = { users: 1, topics: 0, posts: 0, categories: 0 };
     let cats = [];
     const health = await DB.health();
@@ -25,79 +24,41 @@
     }
     const q = UI.param("q");
     const search = q && health.ok ? await DB.search(q) : null;
-    const hero = document.getElementById("hero-slot");
-    if (hero) {
-      var setupNote = health.ok
-        ? "Veriler Supabase uzerinden geliyor. Kategoriler bos; ilk bolumu admin panelinden ac."
-        : "Supabase baglandi ama tablolar henuz yok. setup.html sayfasindaki SQL'i Dashboard > SQL Editor'da calistir.";
-      hero.innerHTML = `
-        <section class="hero">
-          <div>
-            <div class="badge badge-pin" style="margin-bottom:12px;">Yalnizca admin erisimi</div>
-            <h1>${UI.escapeHtml(settings.tagline || "Konus, tartis, birlikte uret.")}</h1>
-            <p>${setupNote}</p>
-            <div class="hero-stats">
-              <div class="stat-pill"><b>${stats.users}</b><span>Uye</span></div>
-              <div class="stat-pill"><b>${stats.topics}</b><span>Konu</span></div>
-              <div class="stat-pill"><b>${stats.posts}</b><span>Mesaj</span></div>
-              <div class="stat-pill"><b>${stats.categories}</b><span>Kategori</span></div>
-            </div>
-          </div>
-          <div class="hero-card">
-            <h3>Hizli basla</h3>
-            <p style="color:#cbd5e1;font-size:.9rem;margin-bottom:12px;">${health.ok ? "Once bir kategori olustur." : "Once semayi kur."}</p>
-            <a class="btn btn-primary" href="${health.ok ? "admin/categories.html" : "setup.html"}">${health.ok ? "Kategori ekle" : "Kurulum"}</a>
-          </div>
-        </section>`;
-    }
-    const list = document.getElementById("category-list");
-    if (list) {
-      const sourceCats = search ? search.categories : cats;
-      const sourceTopics = search ? search.topics : [];
-      if (q) document.getElementById("list-title").textContent = "Arama: " + q;
+    const sourceCats = search ? search.categories : cats;
+    const sourceTopics = search ? search.topics : [];
+    const board = document.getElementById("board");
+    if (board) {
       if (!sourceCats.length && !sourceTopics.length) {
-        list.innerHTML = UI.emptyBox(
-          health.ok ? (q ? "Sonuc yok" : "Henuz kategori yok") : "Tablolar yok",
-          health.ok ? (q ? "Baska bir sozcuk dene." : "Admin panelinden ilk kategoriyi olustur.") : "SQL semasini calistir.",
-          health.ok ? '<a class="btn btn-primary" href="admin/categories.html">Kategori olustur</a>' : '<a class="btn btn-primary" href="setup.html">Kurulum</a>'
-        );
+        board.innerHTML = '<section class="board">' + UI.emptyBox(q ? "Sonuç yok" : "Forum yok", "", health.ok ? '<a class="btn btn-primary" href="admin/categories.html">Forum ekle</a>' : '<a class="btn btn-primary" href="setup.html">Kurulum</a>') + "</section>";
       } else {
-        var html = "";
+        var html = '<section class="board"><div class="board-h"><b>' + (q ? "Arama" : "Forumlar") + '</b></div>';
+        html += '<div class="forum-head"><span>Forum</span><span>Konu</span><span>Mesaj</span><span>Son mesaj</span></div>';
         for (const c of sourceCats) {
-          const count = health.ok ? await DB.topicCounts(c.id) : 0;
-          const last = health.ok ? await DB.lastTopicActivity(c.id) : null;
-          html += `
-            <a class="cat-row" href="category.html?id=${encodeURIComponent(c.id)}">
-              <div class="cat-icon" style="background:#eef2ff;color:#4f46e5">${UI.escapeHtml(c.icon || "📁")}</div>
-              <div>
-                <div class="cat-title">${UI.escapeHtml(c.name)}</div>
-                <div class="cat-desc">${UI.escapeHtml(c.description || "")}</div>
-              </div>
-              <div class="cat-meta"><b>${count} konu</b>${last ? UI.fmtTime(last.updatedAt) : "Henuz yok"}</div>
-            </a>`;
+          const topics = health.ok ? await DB.topics(c.id) : [];
+          var postCount = 0;
+          for (const t of topics) postCount += (await DB.posts(t.id)).length;
+          const last = topics[0] || null;
+          html += '<a class="forum-row" href="category.html?id=' + encodeURIComponent(c.id) + '">' +
+            '<div class="f-main"><div class="f-ico">' + UI.escapeHtml(c.icon || "●") + '</div><div>' +
+            '<div class="f-title">' + UI.escapeHtml(c.name) + '</div>' +
+            (c.description ? '<div class="f-desc">' + UI.escapeHtml(c.description) + "</div>" : "") +
+            "</div></div>" +
+            '<div class="f-num">' + topics.length + "</div>" +
+            '<div class="f-num">' + postCount + "</div>" +
+            '<div class="f-last">' + (last ? "<b>" + UI.escapeHtml(last.title) + "</b>" + UI.fmtTime(last.updatedAt) : "—") + "</div></a>";
         }
         (sourceTopics || []).forEach(function (t) {
-          html += `
-            <a class="cat-row" href="thread.html?id=${encodeURIComponent(t.id)}">
-              <div class="cat-icon" style="background:#fff7ed;color:#c2410c">💬</div>
-              <div>
-                <div class="cat-title">${UI.escapeHtml(t.title)}</div>
-                <div class="cat-desc">Konu</div>
-              </div>
-              <div class="cat-meta">${UI.fmtTime(t.updatedAt)}</div>
-            </a>`;
+          html += '<a class="forum-row" href="thread.html?id=' + encodeURIComponent(t.id) + '"><div class="f-main"><div class="f-ico">▸</div><div><div class="f-title">' + UI.escapeHtml(t.title) + "</div></div></div><div></div><div></div><div class=\"f-last\">" + UI.fmtTime(t.updatedAt) + "</div></a>";
         });
-        list.innerHTML = html;
+        html += "</section>";
+        board.innerHTML = html;
       }
     }
-    const online = document.getElementById("online-slot");
-    if (online) {
-      online.innerHTML = `
-        <div class="user-mini">
-          <span class="avatar">${UI.escapeHtml(window.MeydanAuth.initials(user))}</span>
-          <div><b>${UI.escapeHtml(user.name)}</b><div class="muted">Yonetici · tek oturum</div></div>
-        </div>
-        <p class="muted" style="margin-top:8px">Baska uye yok.</p>`;
+    const box = document.getElementById("board-stats");
+    if (box) {
+      box.innerHTML = '<section class="board stats-box"><div class="board-h"><b>İstatistik</b></div>' +
+        '<div class="stats-grid"><div class="stats-cell">Konu: <b>' + stats.topics + "</b> · Mesaj: <b>" + stats.posts + "</b> · Üye: <b>" + stats.users + "</b></div>" +
+        '<div class="stats-cell">Çevrimiçi <span class="online-dot"></span> <b>' + UI.escapeHtml(user.name) + "</b></div></div></section>";
     }
   }
 
@@ -110,8 +71,8 @@
     const list = document.getElementById("thread-list");
     const newBtn = document.getElementById("new-topic-btn");
     if (!cat) {
-      if (title) title.textContent = "Kategori bulunamadi";
-      if (list) list.innerHTML = UI.emptyBox("Bu kategori yok", "Silinmis veya henuz olusturulmamis.", '<a class="btn btn-primary" href="index.html">Ana sayfa</a>');
+      if (title) title.textContent = "Forum yok";
+      if (list) list.innerHTML = UI.emptyBox("Forum yok", "", '<a class="btn btn-primary" href="index.html">Forumlar</a>');
       if (newBtn) newBtn.style.display = "none";
       return;
     }
@@ -122,24 +83,20 @@
     if (newBtn) newBtn.href = "new-topic.html?category=" + encodeURIComponent(cat.id);
     const topics = await DB.topics(cat.id);
     if (!topics.length) {
-      list.innerHTML = UI.emptyBox("Konu yok", "Bu kategoride henuz tartisma baslatilmadi.", '<a class="btn btn-primary" href="new-topic.html?category=' + encodeURIComponent(cat.id) + '">Ilk konuyu ac</a>');
+      list.innerHTML = UI.emptyBox("Konu yok", "", '<a class="btn btn-primary" href="new-topic.html?category=' + encodeURIComponent(cat.id) + '">Yeni konu</a>');
       return;
     }
-    var html = "";
+    var html = '<div class="thread-head"><span>Konu</span><span>Yazan</span><span>Yanıt</span><span>Son mesaj</span></div>';
     for (const t of topics) {
       const replies = Math.max(0, (await DB.posts(t.id)).length - 1);
       const author = await DB.userById(t.authorId);
-      html += `
-          <a class="thread-row" href="thread.html?id=${encodeURIComponent(t.id)}">
-            <div>
-              ${t.pinned ? '<span class="badge badge-pin">Sabit</span>' : ""}
-              ${t.locked ? '<span class="badge badge-lock">Kilitli</span>' : ""}
-              <div class="cat-title" style="margin-top:6px">${UI.escapeHtml(t.title)}</div>
-              <div class="muted">Baslatan ${UI.escapeHtml(author ? author.name : "—")} · ${replies} yanit</div>
-            </div>
-            <div class="muted">${replies} yanit</div>
-            <div class="muted">${UI.fmtTime(t.updatedAt)}</div>
-          </a>`;
+      html += '<a class="thread-row" href="thread.html?id=' + encodeURIComponent(t.id) + '"><div>' +
+        (t.pinned ? '<span class="badge badge-pin">Sabit</span>' : "") +
+        (t.locked ? '<span class="badge badge-lock">Kilitli</span>' : "") +
+        '<span class="f-title">' + UI.escapeHtml(t.title) + "</span></div>" +
+        '<div class="f-last">' + UI.escapeHtml(author ? author.name : "—") + "</div>" +
+        '<div class="f-num">' + replies + "</div>" +
+        '<div class="f-last">' + UI.fmtTime(t.updatedAt) + "</div></a>";
     }
     list.innerHTML = html;
   }
@@ -254,10 +211,8 @@
       return;
     }
     const health = await DB.health();
-    const note = document.querySelector(".auth-card .muted");
-    if (note && !health.ok) {
-      note.innerHTML = 'Tablolar henuz yok. <a href="setup.html" style="color:var(--primary);font-weight:700">Kurulum SQL</a> dosyasini calistir. Giris icin e-posta onayini da acman gerekebilir.';
-    }
+    const note = document.getElementById("login-note");
+    if (note && !health.ok) note.innerHTML = '<a href="setup.html">Kurulum</a>';
     const form = document.getElementById("login-form");
     form.addEventListener("submit", async function (e) {
       e.preventDefault();

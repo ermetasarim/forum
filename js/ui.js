@@ -69,37 +69,44 @@
     const rootPrefix = window.MeydanAuth.isAdminPage() ? "../" : "";
     return `
       <header class="site-header">
-        <div class="container header-inner">
+        <div class="container header-top">
           <a class="logo" href="${rootPrefix}index.html">
             <span class="logo-mark">M</span> ${escapeHtml(settings.siteName || "Meydan")}
           </a>
           <div class="search">
-            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg>
-            <input type="search" id="global-search" placeholder="Konu veya kategori ara..." />
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg>
+            <input type="search" id="global-search" placeholder="Ara" />
           </div>
           <div class="header-actions">
-            <a class="btn btn-outline" href="${adminPrefix}dashboard.html">Admin</a>
-            <a class="btn btn-ghost" href="${rootPrefix}profile.html">${escapeHtml(user.name)}</a>
-            <button class="btn btn-ghost" type="button" id="logout-btn">Çıkış</button>
-            <span class="avatar">${escapeHtml(window.MeydanAuth.initials(user))}</span>
+            <a href="${rootPrefix}profile.html">${escapeHtml(user.name)}</a>
+            <a href="${adminPrefix}dashboard.html">ACP</a>
+            <button type="button" id="logout-btn">Çıkış</button>
           </div>
         </div>
+        <nav class="header-nav">
+          <div class="container">
+            <a href="${rootPrefix}index.html">Forumlar</a>
+            <a href="${rootPrefix}new-topic.html">Yeni konu</a>
+            <a href="${rootPrefix}profile.html">Profil</a>
+            <a href="${adminPrefix}dashboard.html">Yönetim</a>
+          </div>
+        </nav>
       </header>`;
   }
 
   function adminSidebar(active) {
     const items = [
-      ["dashboard.html", "Kontrol paneli"],
+      ["dashboard.html", "Özet"],
       ["users.html", "Kullanıcılar"],
       ["moderation.html", "Moderasyon"],
-      ["categories.html", "Kategoriler"],
+      ["categories.html", "Forumlar"],
       ["settings.html", "Ayarlar"],
-      ["reports.html", "Raporlar"],
+      ["reports.html", "İstatistik"],
     ];
     return `
       <aside class="admin-sidebar">
-        <div class="admin-brand"><span class="logo-mark">M</span> Meydan Admin</div>
-        <div class="nav-label">Genel</div>
+        <div class="admin-brand"><span class="logo-mark">M</span> ACP</div>
+        <div class="nav-label">Forum</div>
         ${items
           .slice(0, 4)
           .map(
