@@ -57,23 +57,7 @@
     async boardIndex() {
       const cats = await sb.from("categories").select("*").order("sort_order", { ascending: true });
       fail(cats.error);
-      const topics = await sb.from("topics").select("id,category_id,title,updated_at,author_id,pinned,locked").order("updated_at", { ascending: false });
-      const posts = await sb.from("posts").select("topic_id");
-      var authors = {};
-      var topicRows = topics.data || [];
-      var ids = [];
-      topicRows.forEach(function (t) {
-        if (t.author_id && ids.indexOf(t.author_id) === -1 && ids.length < 40) ids.push(t.author_id);
-      });
-      if (ids.length) {
-        const prof = await sb.from("profiles").select("id,name,username").in("id", ids);
-        (prof.data || []).forEach(function (pr) { authors[pr.id] = pr.name || pr.username; });
-      }
-      var postCount = {};
-      (posts.data || []).forEach(function (row) {
-        postCount[row.topic_id] = (postCount[row.topic_id] || 0) + 1;
-      });
-      return { categories: cats.data || [], topics: topicRows, authors: authors, postCount: postCount };
+      return { categories: cats.data || [], topics: [], authors: {}, postCount: {} };
     },
     async usersByIds(ids) {
       var uniq = [];
@@ -131,7 +115,7 @@
       const res = await q.order("pinned", { ascending: false }).order("updated_at", { ascending: false });
       fail(res.error);
       return (res.data || []).map(function (t) {
-        return { id: t.id, categoryId: t.category_id, title: t.title, authorId: t.author_id, pinned: t.pinned, locked: t.locked, views: t.views || 0, createdAt: Date.parse(t.created_at), updatedAt: Date.parse(t.updated_at) };
+        return { id: t.id, categoryId: t.category_id, title: t.title, authorId: t.author_id, pinned: t.pinned, locked: t.locked, views: t.views || 0, replyCount: t.reply_count || 0, lastPoster: t.last_poster || "", createdAt: Date.parse(t.created_at), updatedAt: Date.parse(t.updated_at) };
       });
     },
     async topicById(id) {
@@ -141,7 +125,7 @@
       return { id: res.data.id, categoryId: res.data.category_id, title: res.data.title, authorId: res.data.author_id, pinned: res.data.pinned, locked: res.data.locked, createdAt: Date.parse(res.data.created_at), updatedAt: Date.parse(res.data.updated_at) };
     },
     async latestTopics(limit) {
-      const res = await sb.from("topics").select("id,title,category_id,author_id,updated_at").order("updated_at", { ascending: false }).limit(limit || 10);
+      const res = await sb.from("topics").select("id,title,category_id,author_id,updated_at,reply_count,last_poster").order("updated_at", { ascending: false }).limit(limit || 10);
       if (res.error) return [];
       const cats = await sb.from("categories").select("id,name");
       var cmap = {};
@@ -153,56 +137,50 @@
         const prof = await sb.from("profiles").select("id,name,username").in("id", ids);
         (prof.data || []).forEach(function (u) { names[u.id] = u.name || u.username; });
       }
-      var out = [];
-      for (const x of (res.data || [])) {
-        const posts = await sb.from("posts").select("id", { count: "exact", head: true }).eq("topic_id", x.id);
-        out.push({
+      return (res.data || []).map(function (x) {
+        return {
           id: x.id,
           title: x.title,
           categoryId: x.category_id,
           categoryName: cmap[x.category_id] || "",
-          authorName: names[x.author_id] || "—",
+          authorName: names[x.author_id] || x.last_poster || "—",
           updatedAt: Date.parse(x.updated_at),
-          replyCount: Math.max(0, (posts.count || 1) - 1)
-        });
-      }
-      return out;
-    },
-    async categoryThreads(categoryId) {
-      const topics = await this.topics(categoryId);
-      if (!topics.length) return [];
-      const ids = topics.map(function (x) { return x.id; });
-      const posts = await sb.from("posts").select("id,topic_id,author_id,created_at").in("topic_id", ids).order("created_at", { ascending: false });
-      var authorIds = [];
-      topics.forEach(function (x) { if (x.authorId) authorIds.push(x.authorId); });
-      (posts.data || []).forEach(function (row) { if (row.author_id) authorIds.push(row.author_id); });
-      var uniq = [];
-      authorIds.forEach(function (id) { if (uniq.indexOf(id) === -1) uniq.push(id); });
-      const prof = uniq.length ? await sb.from("profiles").select("id,name,username").in("id", uniq) : { data: [] };
-      var names = {};
-      (prof.data || []).forEach(function (u) { names[u.id] = u.name || u.username; });
-      var byTopic = {};
-      (posts.data || []).forEach(function (row) {
-        if (!byTopic[row.topic_id]) byTopic[row.topic_id] = [];
-        byTopic[row.topic_id].push(row);
-      });
-      return topics.map(function (x) {
-        const list = byTopic[x.id] || [];
-        const last = list[0];
-        return {
-          id: x.id,
-          title: x.title,
-          pinned: x.pinned,
-          locked: x.locked,
-          views: x.views || 0,
-          createdAt: x.createdAt,
-          authorId: x.authorId,
-          authorName: names[x.authorId] || "—",
-          replyCount: Math.max(0, list.length - 1),
-          lastName: last ? (names[last.author_id] || "—") : (names[x.authorId] || "—"),
-          lastAt: last ? Date.parse(last.created_at) : x.updatedAt
+          replyCount: x.reply_count || 0
         };
       });
+    },
+    async categoryThreads(categoryId, page, pageSize) {
+      page = page || 1;
+      pageSize = pageSize || 12;
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+      const res = await sb.from("topics").select("*", { count: "exact" })
+        .eq("category_id", categoryId)
+        .order("pinned", { ascending: false })
+        .order("updated_at", { ascending: false })
+        .range(from, to);
+      fail(res.error);
+      const rows = res.data || [];
+      const authors = await this.usersByIds(rows.map(function (x) { return x.author_id; }));
+      return {
+        total: res.count || 0,
+        rows: rows.map(function (x) {
+          const a = authors[x.author_id];
+          return {
+            id: x.id,
+            title: x.title,
+            pinned: x.pinned,
+            locked: x.locked,
+            views: x.views || 0,
+            createdAt: Date.parse(x.created_at),
+            authorId: x.author_id,
+            authorName: a ? a.name : (x.last_poster || "—"),
+            replyCount: x.reply_count || 0,
+            lastName: x.last_poster || (a ? a.name : "—"),
+            lastAt: Date.parse(x.updated_at)
+          };
+        })
+      };
     },
     async topicCounts(categoryId) {
       const list = await this.topics(categoryId);
@@ -233,12 +211,19 @@
       const res = await sb.from("topics").delete().eq("id", id);
       fail(res.error);
     },
-    async posts(topicId) {
-      const res = await sb.from("posts").select("*").eq("topic_id", topicId).order("created_at", { ascending: true });
+    async posts(topicId, page, pageSize) {
+      page = page || 1;
+      pageSize = pageSize || 20;
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+      const res = await sb.from("posts").select("*", { count: "exact" }).eq("topic_id", topicId).order("created_at", { ascending: true }).range(from, to);
       fail(res.error);
-      return (res.data || []).map(function (p) {
-        return { id: p.id, topicId: p.topic_id, authorId: p.author_id, body: p.body, createdAt: Date.parse(p.created_at) };
-      });
+      return {
+        total: res.count || 0,
+        rows: (res.data || []).map(function (p) {
+          return { id: p.id, topicId: p.topic_id, authorId: p.author_id, body: p.body, createdAt: Date.parse(p.created_at) };
+        })
+      };
     },
     async addPost(opts) {
       const topic = await this.topicById(opts.topicId);
@@ -268,18 +253,20 @@
       fail(res.error);
     },
     async stats() {
-      const topics = await sb.from("topics").select("id", { count: "exact", head: true });
-      const posts = await sb.from("posts").select("id", { count: "exact", head: true });
-      const categories = await sb.from("categories").select("id", { count: "exact", head: true });
-      var userCount = 1;
-      var lastMember = null;
+      const cats = await sb.from("categories").select("id,topic_count,post_count");
+      var topicN = 0, postN = 0;
+      (cats.data || []).forEach(function (c) {
+        topicN += c.topic_count || 0;
+        postN += c.post_count || 0;
+      });
+      var userCount = 1, lastMember = null;
       try {
         const users = await sb.from("profiles").select("id", { count: "exact", head: true }).limit(1);
         if (!users.error) userCount = users.count || 1;
-        const last = await sb.from("profiles").select("name,username,created_at").order("created_at", { ascending: false }).limit(1);
+        const last = await sb.from("profiles").select("name,username").order("created_at", { ascending: false }).limit(1);
         if (last.data && last.data[0]) lastMember = last.data[0].name || last.data[0].username;
       } catch (e) {}
-      return { users: userCount, topics: topics.count || 0, posts: posts.count || 0, categories: categories.count || 0, lastMember: lastMember, openReports: 0, online: 1 };
+      return { users: userCount, topics: topicN, posts: postN, categories: (cats.data || []).length, lastMember: lastMember, openReports: 0, online: 1 };
     },
     async search(q) {
       const query = String(q || "").trim();

@@ -57,24 +57,19 @@
     }
 
     function rowHtml(c) {
-      const topics = allTopics.filter(function (t) { return t.category_id === c.id; });
-      const last = topics[0] || null;
-      var msg = 0;
-      topics.forEach(function (t) { msg += postCount[t.id] || 0; });
       var lastHtml = "—";
-      if (last) {
-        const who = authors[last.author_id] || "";
-        lastHtml = (last.pinned ? '<span class="badge badge-guide">Rehber</span> ' : "") +
-          '<a class="last-link" href="thread.html?id=' + encodeURIComponent(last.id) + '">' + UI.escapeHtml(last.title) + "</a>" +
-          '<div class="last-meta">' + UI.fmtTime(Date.parse(last.updated_at || last.updatedAt)) + (who ? " · " + UI.escapeHtml(who) : "") + "</div>";
+      if (c.last_topic_title) {
+        lastHtml = '<div class="last-link">' + UI.escapeHtml(c.last_topic_title) + "</div>" +
+          '<div class="last-meta">' + UI.fmtTime(c.last_topic_at ? Date.parse(c.last_topic_at) : 0) +
+          (c.last_poster ? " · " + UI.escapeHtml(c.last_poster) : "") + "</div>";
       }
       return '<article class="forum-row">' +
         '<div class="f-main"><div class="f-ico">' + UI.escapeHtml((c.icon || "●").slice(0, 3)) + "</div><div>" +
         '<a class="f-title" href="category.html?id=' + encodeURIComponent(c.id) + '">' + UI.escapeHtml(c.name) + "</a>" +
         (c.description ? '<div class="f-desc">' + UI.escapeHtml(c.description) + "</div>" : "") +
         "</div></div>" +
-        '<div class="f-counts"><div><span>Konular</span><b>' + topics.length + "</b></div>" +
-        "<div><span>Mesajlar</span><b>" + msg + "</b></div></div>" +
+        '<div class="f-counts"><div><span>Konular</span><b>' + (c.topic_count || 0) + "</b></div>" +
+        "<div><span>Mesajlar</span><b>" + (c.post_count || 0) + "</b></div></div>" +
         '<div class="f-last">' + lastHtml + "</div></article>";
     }
 
@@ -137,15 +132,18 @@
       return;
     }
     document.title = cat.name;
-    var threads = [];
+    var pack = { total: 0, rows: [] };
     var latest = [];
-    try { threads = await DB.categoryThreads(cat.id); } catch (e) { UI.toast(e.message, "err"); }
     try { latest = await DB.latestTopics(9); } catch (e) {}
     var pageSize = 12;
     var state = { q: "", prefix: "all", page: 1 };
 
+    async function loadPage() {
+      pack = await DB.categoryThreads(cat.id, state.page, pageSize);
+    }
+
     function filtered() {
-      var rows = threads.slice();
+      var rows = pack.rows || [];
       if (state.prefix === "rehber") rows = rows.filter(function (x) { return x.pinned; });
       if (state.prefix === "cozuldu") rows = rows.filter(function (x) { return x.locked; });
       if (state.prefix === "diger") rows = rows.filter(function (x) { return !x.pinned && !x.locked; });
@@ -177,8 +175,8 @@
 
     function paint() {
       const rowsAll = filtered();
-      const pages = Math.max(1, Math.ceil(rowsAll.length / pageSize));
-      const slice = rowsAll.slice((state.page - 1) * pageSize, state.page * pageSize);
+      const pages = Math.max(1, Math.ceil((pack.total || rowsAll.length) / pageSize));
+      const slice = rowsAll;
       const rehber = threads.filter(function (x) { return x.pinned; }).length;
       const cozuldu = threads.filter(function (x) { return x.locked; }).length;
       const diger = threads.filter(function (x) { return !x.pinned && !x.locked; }).length;
@@ -201,7 +199,7 @@
       html += "</div>";
       html += '<div class="cat-layout">';
       html += '<div class="cat-main">';
-      html += pagerHtml(rowsAll.length);
+      html += pagerHtml(pack.total || rowsAll.length);
       html += '<section class="topic-card">';
       html += '<div class="topic-tools"><span class="q-ico">?</span><input id="topic-filter" type="search" placeholder="Konu başlığı" /><button type="button" class="filter-link">Filtreler ▾</button></div>';
       if (!slice.length) {
@@ -243,10 +241,14 @@
         btn.addEventListener("click", function () { state.prefix = btn.getAttribute("data-prefix"); state.page = 1; paint(); });
       });
       root.querySelectorAll("[data-page]").forEach(function (btn) {
-        btn.addEventListener("click", function () { state.page = parseInt(btn.getAttribute("data-page"), 10); paint(); });
+        btn.addEventListener("click", async function () {
+          state.page = parseInt(btn.getAttribute("data-page"), 10);
+          await loadPage();
+          paint();
+        });
       });
     }
-    paint();
+    loadPage().then(paint).catch(function (e) { UI.toast(e.message, "err"); });
   }
 
   function fmtClock(ts) {
@@ -317,7 +319,9 @@
     if (titleEl) titleEl.textContent = topic.title;
     const flags = document.getElementById("thread-flags");
     if (flags) flags.innerHTML = (topic.pinned ? '<span class="badge badge-guide">Rehber</span>' : "") + (topic.locked ? '<span class="badge badge-lock">Kilitli</span>' : "");
-    const posts = await DB.posts(topic.id);
+    const pageNo = parseInt(UI.param("p") || "1", 10) || 1;
+    const pack = await DB.posts(topic.id, pageNo, 20);
+    const posts = pack.rows || [];
     const authors = await DB.usersByIds(posts.map(function (p) { return p.authorId; }));
     var html = "";
     for (var i = 0; i < posts.length; i++) {
@@ -348,6 +352,14 @@
       html += '<div class="pb-content">' + formatBody(p.body) + "</div>";
       html += '<div class="pb-actions"><a href="#reply-box">Cevapla</a></div>';
       html += "</div></article>";
+    }
+    var pages = Math.max(1, Math.ceil((pack.total || posts.length) / 20));
+    if (pages > 1) {
+      html += '<div class="pager">';
+      for (var pg = 1; pg <= Math.min(pages, 8); pg++) {
+        html += '<a class="page-btn' + (pg === pageNo ? " on" : "") + '" href="thread.html?id=' + encodeURIComponent(topic.id) + '&p=' + pg + '">' + pg + "</a>";
+      }
+      html += "</div>";
     }
     document.getElementById("posts").innerHTML = html;
     const form = document.getElementById("reply-form");
