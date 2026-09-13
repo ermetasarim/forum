@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nexus Forum</title>
+  <style>
+    :root {
+      --bg:#f4f3ef; --bg-side:#eceae4; --surface:#fff; --line:#e4e2db; --text:#1c1c1c;
+      --muted:#6f6b64; --faint:#9a958c; --accent:#e04e16; --accent-soft:#fde8df;
+      --shadow:0 1px 2px rgba(20,16,12,.06); --radius:12px; --header-h:56px; --side-w:232px; --page-w:1180px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Inter,Segoe UI,system-ui,sans-serif;font-size:15px;line-height:1.45;text-align:left}
+    a{color:inherit;text-decoration:none}
+    button,input,textarea,select{font:inherit}
+    button{cursor:pointer}
+    .app{min-height:100vh;width:min(var(--page-w),calc(100% - 32px));margin:0 auto;display:flex;flex-direction:column;background:var(--bg);border-left:1px solid var(--line);border-right:1px solid var(--line)}
+    .top{height:var(--header-h);background:#f7f6f2;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:0 16px;position:sticky;top:0;z-index:20}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-.02em;white-space:nowrap}
+    .brand-mark{width:26px;height:26px;border-radius:7px;background:#111;color:#fff;display:grid;place-items:center;font-size:13px;font-weight:700}
+    .search{flex:1;max-width:520px;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 14px}
+    .search input{border:0;outline:0;width:100%;background:transparent}
+    .top-actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+    .btn{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 13px;color:var(--text);font-weight:550}
+    .btn:hover{background:#faf9f6}
+    .btn.primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+    .btn.ghost{background:transparent}
+    .avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:13px;flex:none}
+    .avatar.sm{width:26px;height:26px;font-size:11px}
+    .avatar.lg{width:48px;height:48px;font-size:18px}
+    .shell{display:flex;flex:1;min-height:calc(100vh - var(--header-h))}
+    .side{width:var(--side-w);background:var(--bg-side);border-right:1px solid var(--line);padding:14px 10px 40px;position:sticky;top:var(--header-h);height:calc(100vh - var(--header-h));overflow:auto}
+    .nav-item,.cat-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;color:#3a3a3a;font-weight:500}
+    .nav-item:hover,.cat-item:hover{background:rgba(255,255,255,.55)}
+    .nav-item.active{color:var(--accent);font-weight:650}
+    .nav-ico{width:18px;text-align:center;opacity:.85}
+    .sec-label{font-size:12px;color:var(--muted);font-weight:650;padding:16px 10px 6px}
+    .dot{width:10px;height:10px;border-radius:3px;flex:none}
+    .linkish{color:var(--accent);font-weight:600;font-size:13px;padding:6px 10px;display:inline-block}
+    .main{flex:1;min-width:0;padding:22px 24px 80px;width:100%}
+    h1,h2,h3{margin:0 0 12px;letter-spacing:-.02em}
+    .h-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+    .featured{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px}
+    .feat-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;min-height:92px;box-shadow:var(--shadow)}
+    .feat-card h3{font-size:15px;margin:0 0 10px}
+    .feat-meta{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}
+    .tabs{display:flex;align-items:center;gap:6px;margin:8px 0 18px;flex-wrap:wrap}
+    .tab{border:0;background:transparent;padding:8px 10px;color:var(--muted);font-weight:600;border-bottom:2px solid transparent}
+    .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+    .pill{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 12px;font-weight:600}
+    .home-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:28px}
+    .cat-row{display:grid;grid-template-columns:1fr auto;gap:12px;padding:14px 0 14px 12px;border-top:1px solid var(--line);position:relative}
+    .cat-row::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:4px;border-radius:4px;background:var(--c,#888)}
+    .cat-row h3{font-size:16px;margin:0 0 4px}
+    .cat-row p{margin:0;color:var(--muted);font-size:13.5px}
+    .cat-count{color:var(--faint);font-weight:650;font-size:15px}
+    .latest-item{display:grid;grid-template-columns:32px 1fr auto;gap:10px;padding:12px 0;border-top:1px solid var(--line);align-items:start}
+    .latest-item h3{font-size:14.5px;margin:0 0 4px;font-weight:600}
+    .latest-item .meta{color:var(--muted);font-size:12.5px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .latest-item .stat{color:var(--faint);font-size:13px;text-align:right;min-width:42px}
+    .topic-head,.topic-row{display:grid;grid-template-columns:1fr 70px 70px 90px;gap:10px;align-items:center}
+    .topic-head{color:var(--muted);font-size:13px;font-weight:600;padding:0 4px 8px;border-bottom:1px solid var(--line)}
+    .topic-row{padding:12px 4px;border-bottom:1px solid var(--line)}
+    .topic-title{font-weight:600;display:flex;gap:8px;align-items:flex-start}
+    .topic-title .t{flex:1}
+    .pin{color:var(--accent);font-size:13px}
+    .closed{color:var(--muted);font-size:12px;margin-left:6px}
+    .cat-chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted)}
+    .tag{font-size:12px;color:var(--muted)}
+    .num{color:var(--faint);text-align:right;font-variant-numeric:tabular-nums}
+    .post{display:grid;grid-template-columns:56px 1fr;gap:8px;padding:18px 0;border-top:1px solid var(--line)}
+    .post-body{white-space:pre-wrap;word-break:break-word}
+    .post-user{font-weight:700}
+    .post-role{font-size:11px;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:1px 7px;margin-left:6px}
+    .post-time{color:var(--faint);font-size:12.5px;margin-left:8px}
+    .post-actions{margin-top:10px}
+    .like{border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 10px;font-size:13px}
+    .composer{margin-top:18px;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
+    .composer textarea,.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;outline:none}
+    .composer textarea{min-height:110px;resize:vertical}
+    .composer-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+    .field{margin-bottom:12px}
+    .field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
+    .auth-wrap{width:min(420px,100%);margin:48px 0 48px 24px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:28px}
+    .err{background:#fef2f2;color:#b91c1c;padding:10px 12px;border-radius:8px;margin-bottom:12px;font-size:14px}
+    .users{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+    .user-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:14px;display:flex;gap:12px}
+    .admin-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+    .stat{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+    .stat b{display:block;font-size:26px;letter-spacing:-.03em}
+    .stat span{color:var(--muted);font-size:13px}
+    .topic-hero h1{font-size:26px;line-height:1.25}
+    .muted{color:var(--muted)}
+    .empty{color:var(--muted);padding:30px 0}
+    .hint{background:#fff;border:1px dashed var(--line);border-radius:10px;padding:10px 12px;margin:0 0 16px;color:var(--muted);font-size:13px}
+    @media(max-width:960px){
+      .app{width:100%;border:0}
+      .side{display:none}
+      .featured,.home-grid,.admin-grid,.topic-head{display:block}
+      .topic-row{grid-template-columns:1fr auto}
+      .topic-row .num.hide-sm{display:none}
+      .main{padding:16px}
+      .auth-wrap{margin:24px 16px}
+    }
+  </style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const KEY = "nexus-forum-html-v1";
+const PALETTE = ["#e11d48","#7c3aed","#0ea5e9","#14b8a6","#f59e0b","#6366f1","#ec4899","#84cc16"];
+const $ = (s, el=document) => el.querySelector(s);
+const app = document.getElementById("app");
+let DB, ME;
+
+function hash(s){
+  let h = 2166136261;
+  for (let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return (h>>>0).toString(16);
+}
+function now(){ return Math.floor(Date.now()/1000); }
+function esc(s){ return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function colorFor(name){ let h=0; for(const c of name||"?") h=(h*31+c.charCodeAt(0))>>>0; return PALETTE[h%PALETTE.length]; }
+function avatar(u, size=""){
+  const name = u?.display_name || u?.username || "?";
+  return `<div class="avatar ${size}" style="background:${colorFor(u?.username||name)}">${esc(name.trim().charAt(0).toUpperCase())}</div>`;
+}
+function relTime(ts){
+  const s = Math.max(0, now()-ts);
+  if(s<60) return "şimdi";
+  if(s<3600) return Math.floor(s/60)+"dk";
+  if(s<86400) return Math.floor(s/3600)+"sa";
+  if(s<86400*7) return Math.floor(s/86400)+"g";
+  return new Date(ts*1000).toLocaleDateString("tr-TR",{day:"numeric",month:"short"});
+}
+function save(){ localStorage.setItem(KEY, JSON.stringify({db:DB, session: ME ? ME.id : null})); }
+function load(){
+  try{
+    const raw = JSON.parse(localStorage.getItem(KEY)||"null");
+    if(raw?.db?.users?.length){
+      DB = raw.db;
+      ME = DB.users.find(u=>u.id===raw.session) || null;
+      return;
+    }
+  }catch(e){}
+  seed();
+}
+function seed(){
+  const t = now();
+  DB = {
+    nextUser:4, nextCat:6, nextTopic:7, nextPost:13,
+    users:[
+      {id:1,username:"admin",email:"admin@localhost",pass:hash("ForumYonetici#2026"),display_name:"Yönetici",role:"admin",created_at:t-86400*120},
+      {id:2,username:"deniz",email:"deniz@localhost",pass:hash("Deniz123!"),display_name:"Deniz Kaya",role:"member",created_at:t-86400*40},
+      {id:3,username:"ece",email:"ece@localhost",pass:hash("Ece12345!"),display_name:"Ece Yılmaz",role:"moderator",created_at:t-86400*60}
+    ],
+    categories:[
+      {id:1,slug:"duyurular",name:"Duyurular",description:"Resmi güncellemeler ve önemli haberler.",color:"#e11d48"},
+      {id:2,slug:"etkinlikler",name:"Etkinlikler",description:"Buluşmalar, yayınlar ve takvim.",color:"#7c3aed"},
+      {id:3,slug:"tartismalar",name:"Tartışmalar",description:"İş akışları, ipuçları ve sohbet.",color:"#0ea5e9"},
+      {id:4,slug:"destek",name:"Destek",description:"Kurulum, hata ve yardım konuları.",color:"#14b8a6"},
+      {id:5,slug:"fikirler",name:"Fikirler",description:"Özellik istekleri ve iyileştirme önerileri.",color:"#ec4899"}
+    ],
+    topics:[],
+    posts:[]
+  };
+  const addTopic = (cat, user, title, tags, pinned, posts, offset)=>{
+    const created = t-offset;
+    const tid = DB.nextTopic++;
+    DB.topics.push({id:tid,category_id:cat,user_id:user,title,tags,pinned:!!pinned,closed:false,views:8+offset%20,created_at:created,last_posted_at:created});
+    posts.forEach((p,i)=>{
+      const pt = created + i*900;
+      DB.posts.push({id:DB.nextPost++, topic_id:tid, user_id:p[0], body:p[1], likes:i?0:2, created_at:pt});
+      DB.topics.find(x=>x.id===tid).last_posted_at = pt;
+    });
+  };
+  addTopic(1,1,"Foruma hoş geldiniz","duyuru,baslangic",true,[
+    [1,"Burası Discourse tarzı topluluk forumu. Konu açabilir, yanıt yazabilir, kategorileri kullanabilirsiniz.\n\nKurallar:\n- Doğru kategoriye yazın\n- Kişisel saldırı yok\n- Spam yok"],
+    [3,"Arayüz Cursor forumundaki düzene yakın duruyor."]
+  ], 3600*8);
+  addTopic(3,2,"Günlük iş akışınızı nasıl kuruyorsunuz?","is-akisi,ipuclari",false,[
+    [2,"Sabah kısa plan, öğleden sonra derin iş. Siz nasıl bölüyorsunuz?"],
+    [3,"90 dk odak, 15 dk ara. Bildirimleri o bloklarda kapatıyorum."],
+    [1,"Konu başlığı net olsun, ilk mesaj bağlam versin."]
+  ], 7200);
+  addTopic(4,3,"Giriş yaptıktan sonra konu açılmıyor gibi görünüyor","giris,hata",false,[
+    [3,"Composer açılıyor ama liste yenilenmiyor gibi."],
+    [2,"Bende sayfayı yenileyince düşüyor."],
+    [1,"Tarayıcı önbelleğini temizleyip tekrar deneyin."]
+  ], 10800);
+  addTopic(5,2,"Konulara çözüm işareti ekleyelim","ozellik,cozuldu",false,[
+    [2,"Destek kategorisinde doğru yanıtı işaretlemek isterdim."]
+  ], 14400);
+  addTopic(2,1,"İlk çevrimiçi buluşma — Cuma 21:00","bulusma,canli",true,[
+    [1,"Bu Cuma 21:00’de kısa bir tanışma yayını. Gündem: kurallar, kategoriler, soru-cevap."],
+    [2,"Katılıyorum. Kaydı da paylaşır mısınız?"]
+  ], 18000);
+  addTopic(3,3,"İyi bir konu başlığı nasıl yazılır?","yazim,rehber",false,[
+    [3,"Belirsiz başlıklar ('yardım', 'hata var') kayboluyor. Ne, nerede, ne beklediğinizi yazın."]
+  ], 21600);
+  ME = null;
+  save();
+}
+function userById(id){ return DB.users.find(u=>u.id===id); }
+function catById(id){ return DB.categories.find(c=>c.id===id); }
+function catBySlug(s){ return DB.categories.find(c=>c.slug===s); }
+function topicDecor(t){
+  const posts = DB.posts.filter(p=>p.topic_id===t.id).sort((a,b)=>a.created_at-b.created_at);
+  return {
+    ...t,
+    tags: (t.tags||"").split(",").filter(Boolean),
+    replies: Math.max(0, posts.length-1),
+    category: catById(t.category_id),
+    author: userById(t.user_id),
+    posts
+  };
+}
+function route(){
+  const h = (location.hash || "#/").replace(/^#/, "") || "/";
+  return h.startsWith("/") ? h : "/" + h;
+}
+function go(href, ev){
+  if(ev) ev.preventDefault();
+  location.hash = href.startsWith("#") ? href : "#"+href;
+}
+window.addEventListener("hashchange", render);
+document.addEventListener("click", e=>{
+  const a = e.target.closest("a[href]");
+  if(!a) return;
+  const href = a.getAttribute("href");
+  if(href && href.startsWith("#/")) { e.preventDefault(); go(href); }
+});
+
+function layout(html, active="home"){
+  const cats = DB.categories.map(c=>`<a class="cat-item" href="#/c/${esc(c.slug)}"><span class="dot" style="background:${esc(c.color)}"></span>${esc(c.name)}</a>`).join("");
+  const userBit = ME
+    ? `<button class="btn ghost" id="btn-logout">Çıkış</button><div class="avatar" style="background:${colorFor(ME.username)}">${esc(ME.display_name.charAt(0).toUpperCase())}</div>`
+    : `<a class="btn" href="#/register">Kayıt ol</a><a class="btn primary" href="#/login">Giriş</a>`;
+  app.innerHTML = `
+    <div class="app">
+      <header class="top">
+        <a class="brand" href="#/"><span class="brand-mark">N</span> Nexus Forum</a>
+        <form class="search" id="search-form"><span>⌕</span><input name="q" placeholder="Ara" value="${esc(new URLSearchParams((route().split("?")[1]||"")).get("q")||"")}"></form>
+        <div class="top-actions">${ME?`<a class="btn primary" href="#/new">+ Yeni konu</a>`:""}${userBit}</div>
+      </header>
+      <div class="shell">
+        <aside class="side">
+          <a class="nav-item ${active==="home"?"active":""}" href="#/"><span class="nav-ico">⌂</span>Ana sayfa</a>
+          <a class="nav-item ${active==="topics"?"active":""}" href="#/latest"><span class="nav-ico">☰</span>Konular</a>
+          <a class="nav-item ${active==="users"?"active":""}" href="#/users"><span class="nav-ico">☺</span>Üyeler</a>
+          <a class="nav-item ${active==="about"?"active":""}" href="#/about"><span class="nav-ico">ℹ</span>Hakkında</a>
+          ${(ME && (ME.role==="admin"||ME.role==="moderator"))?`<a class="nav-item ${active==="admin"?"active":""}" href="#/admin"><span class="nav-ico">⚙</span>Yönetim</a>`:""}
+          <div class="sec-label">Kategoriler</div>
+          ${cats}
+          <a class="linkish" href="#/categories">Tüm kategoriler</a>
+        </aside>
+        <main class="main">${html}</main>
+      </div>
+    </div>`;
+  $("#search-form").addEventListener("submit", e=>{
+    e.preventDefault();
+    go("#/search?q="+encodeURIComponent(new FormData(e.target).get("q")||""));
+  });
+  $("#btn-logout")?.addEventListener("click", ()=>{ ME=null; save(); render(); });
+}
+function catChip(c){ return c?`<span class="cat-chip"><span class="dot" style="background:${esc(c.color)}"></span>${esc(c.name)}</span>`:""; }
+function topicLine(t){
+  const d = topicDecor(t);
+  return `<a class="latest-item" href="#/t/${d.id}">
+    ${avatar(d.author,"sm")}<div><h3>${d.pinned?"<span class='pin'>📌</span>":""}${esc(d.title)}${d.closed?"<span class='closed'>kilitli</span>":""}</h3>
+    <div class="meta">${catChip(d.category)}${d.tags.map(x=>`<span class="tag">${esc(x)}</span>`).join("")}</div></div>
+    <div class="stat">${d.replies}<div style="font-size:11px">${relTime(d.last_posted_at)}</div></div></a>`;
+}
+function listTopics({filter="latest", slug="", q="", title="Konular"}={}){
+  let list = DB.topics.map(topicDecor);
+  if(slug) list = list.filter(t=>t.category?.slug===slug);
+  if(q){ const n=q.toLowerCase(); list = list.filter(t=>t.title.toLowerCase().includes(n)||t.tags.join(" ").includes(n)); }
+  list.sort((a,b)=> (b.pinned-a.pinned) || (filter==="hot" ? b.views-a.views : b.last_posted_at-a.last_posted_at));
+  layout(`
+    <div class="h-row"><h1>${esc(title)}</h1>${ME?`<a class="btn primary" href="#/new">Yeni konu</a>`:""}</div>
+    <div class="tabs">
+      <a class="tab ${filter==="latest"&&!slug&&!q?"active":""}" href="#/latest">Son</a>
+      <a class="tab ${filter==="hot"?"active":""}" href="#/hot">Popüler</a>
+    </div>
+    <div class="topic-head"><div>Konu</div><div class="num hide-sm">Yanıt</div><div class="num hide-sm">Görüntülenme</div><div class="num">Etkinlik</div></div>
+    ${list.length?list.map(t=>`
+      <a class="topic-row" href="#/t/${t.id}">
+        <div class="topic-title">${avatar(t.author,"sm")}<div class="t">${t.pinned?"<span class='pin'>📌</span>":""}${esc(t.title)}${t.closed?"<span class='closed'>kilitli</span>":""}
+        <div class="meta" style="margin-top:4px">${catChip(t.category)} ${t.tags.map(x=>`<span class="tag">${esc(x)}</span>`).join("")}</div></div></div>
+        <div class="num hide-sm">${t.replies}</div><div class="num hide-sm">${t.views}</div><div class="num">${relTime(t.last_posted_at)}</div>
+      </a>`).join(""):`<p class="empty">Konu yok.</p>`}
+  `,"topics");
+}
+
+function pageHome(){
+  const topics = [...DB.topics].sort((a,b)=>b.last_posted_at-a.last_posted_at);
+  const featured = topics.filter(t=>t.pinned).concat(topics).slice(0,3).map(topicDecor);
+  const week = now()-7*86400;
+  layout(`
+    <h2>Öne çıkanlar</h2>
+    <div class="featured">${featured.map(t=>`<a class="feat-card" href="#/t/${t.id}"><h3>${esc(t.title)}</h3><div class="feat-meta">${avatar(t.author,"sm")}<span>${esc(t.author.display_name)}</span></div></a>`).join("")}</div>
+    <div class="tabs"><a class="pill" href="#/categories">kategoriler ▾</a><a class="tab active" href="#/">Kategoriler</a><a class="tab" href="#/hot">Popüler</a><a class="tab" href="#/latest">Son</a></div>
+    <div class="home-grid">
+      <section>
+        ${DB.categories.map(c=>{
+          const n = DB.topics.filter(t=>t.category_id===c.id && t.created_at>=week).length;
+          const all = DB.topics.filter(t=>t.category_id===c.id).length;
+          return `<a class="cat-row" style="--c:${esc(c.color)}" href="#/c/${esc(c.slug)}"><div><h3>${esc(c.name)}</h3><p>${esc(c.description)}</p></div><div class="cat-count">${n?n+" / hafta":all}</div></a>`;
+        }).join("")}
+      </section>
+      <section>
+        <div class="topic-head" style="grid-template-columns:1fr auto"><div>Son konular</div><div></div></div>
+        ${topics.slice(0,8).map(topicLine).join("")}
+      </section>
+    </div>
+  `,"home");
+}
+function pageTopic(id){
+  const raw = DB.topics.find(t=>t.id===id);
+  if(!raw){ layout("<h1>Konu yok</h1>"); return; }
+  raw.views++; save();
+  const t = topicDecor(raw);
+  const canMod = ME && (ME.role==="admin"||ME.role==="moderator");
+  layout(`
+    <div class="topic-hero">
+      <div class="muted" style="margin-bottom:8px">${catChip(t.category)} ${t.tags.map(x=>`<span class="tag">#${esc(x)}</span>`).join("")}</div>
+      <h1>${t.pinned?"📌 ":""}${esc(t.title)}</h1>
+      <div class="muted">${t.replies} yanıt · ${t.views} görüntülenme ${t.closed?"· kilitli":""}</div>
+      ${canMod?`<div style="margin-top:10px;display:flex;gap:8px">
+        <button class="btn" id="pin">Sabitle</button>
+        <button class="btn" id="close">${t.closed?"Kilidi aç":"Kilitle"}</button>
+        <button class="btn" id="del">Sil</button></div>`:""}
+    </div>
+    ${t.posts.map((p,i)=>{
+      const u = userById(p.user_id);
+      return `<article class="post">${avatar(u,"lg")}<div>
+        <div><span class="post-user">${esc(u.display_name)}</span> <span class="muted">@${esc(u.username)}</span>
+        ${u.role!=="member"?`<span class="post-role">${esc(u.role)}</span>`:""}
+        <span class="post-time">#${i+1} · ${relTime(p.created_at)}</span></div>
+        <div class="post-body">${esc(p.body)}</div>
+        <div class="post-actions"><button class="like" data-like="${p.id}">♥ ${p.likes}</button></div>
+      </div></article>`;
+    }).join("")}
+    ${ME && !t.closed?`<form class="composer" id="reply"><textarea name="body" placeholder="Yanıt yazın…" required></textarea>
+      <div class="composer-actions"><button class="btn primary">Yanıtla</button></div></form>`
+      : ME?`<p class="muted">Bu konu kilitli.</p>`:`<p class="muted"><a href="#/login">Giriş yapın</a> yanıt yazmak için.</p>`}
+  `,"topics");
+  $("#reply")?.addEventListener("submit", e=>{
+    e.preventDefault();
+    const body = new FormData(e.target).get("body").trim();
+    if(body.length<2) return;
+    DB.posts.push({id:DB.nextPost++, topic_id:id, user_id:ME.id, body, likes:0, created_at:now()});
+    raw.last_posted_at = now(); save(); render();
+  });
+  app.querySelectorAll("[data-like]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      if(!ME) return go("#/login");
+      const p = DB.posts.find(x=>x.id===Number(btn.dataset.like));
+      if(!p) return;
+      p.likes++; save(); btn.textContent = "♥ "+p.likes;
+    });
+  });
+  $("#pin")?.addEventListener("click", ()=>{ raw.pinned=!raw.pinned; save(); render(); });
+  $("#close")?.addEventListener("click", ()=>{ raw.closed=!raw.closed; save(); render(); });
+  $("#del")?.addEventListener("click", ()=>{
+    if(!confirm("Konu silinsin mi?")) return;
+    DB.topics = DB.topics.filter(x=>x.id!==id);
+    DB.posts = DB.posts.filter(x=>x.topic_id!==id);
+    save(); go("#/latest");
+  });
+}
+function pageUsers(){
+  layout(`<h1>Üyeler</h1><div class="users">${DB.users.map(u=>`
+    <div class="user-card">${avatar(u,"lg")}<div>
+      <div class="post-user">${esc(u.display_name)}</div>
+      <div class="muted">@${esc(u.username)} · ${esc(u.role)}</div>
+      <div class="muted" style="margin-top:4px">${DB.topics.filter(t=>t.user_id===u.id).length} konu · ${DB.posts.filter(p=>p.user_id===u.id).length} ileti</div>
+    </div></div>`).join("")}</div>`,"users");
+}
+function authForm(isLogin){
+  app.innerHTML = `<div class="app"><header class="top"><a class="brand" href="#/"><span class="brand-mark">N</span> Nexus Forum</a></header>
+    <form class="auth-wrap" id="auth">
+      <h1>${isLogin?"Giriş yap":"Kayıt ol"}</h1>
+      <div class="hint">Admin: <b>admin</b> / <b>ForumYonetici#2026</b></div>
+      <div id="msg"></div>
+      <div class="field"><label>Kullanıcı adı</label><input name="username" required></div>
+      ${isLogin?"":`<div class="field"><label>E-posta</label><input name="email" type="email" required></div>
+      <div class="field"><label>Görünen ad</label><input name="display_name"></div>`}
+      <div class="field"><label>Şifre</label><input name="password" type="password" required></div>
+      <button class="btn primary" style="width:100%">${isLogin?"Giriş":"Hesap oluştur"}</button>
+      <p class="muted" style="margin-top:14px">${isLogin?`Hesabın yok mu? <a href="#/register">Kayıt ol</a>`:`Zaten üye misin? <a href="#/login">Giriş yap</a>`}</p>
+    </form></div>`;
+  $("#auth").addEventListener("submit", e=>{
+    e.preventDefault();
+    const fd = Object.fromEntries(new FormData(e.target).entries());
+    try{
+      if(isLogin){
+        const u = DB.users.find(x=>x.username===fd.username || x.email===fd.username);
+        if(!u || u.pass!==hash(fd.password)) throw new Error("Kullanıcı adı veya şifre hatalı.");
+        ME = u;
+      }else{
+        if(!/^[a-zA-Z0-9_]{3,20}$/.test(fd.username)) throw new Error("Kullanıcı adı 3-20 karakter, harf/rakam/_");
+        if((fd.password||"").length<8) throw new Error("Şifre en az 8 karakter.");
+        if(DB.users.some(x=>x.username===fd.username || x.email===fd.email)) throw new Error("Bu kullanıcı alınmış.");
+        const u = {id:DB.nextUser++, username:fd.username, email:fd.email, pass:hash(fd.password), display_name:fd.display_name||fd.username, role:"member", created_at:now()};
+        DB.users.push(u); ME = u;
+      }
+      save(); go("#/");
+    }catch(err){ $("#msg").innerHTML = `<div class="err">${esc(err.message)}</div>`; }
+  });
+}
+function pageNew(){
+  if(!ME) return go("#/login");
+  layout(`<h1>Yeni konu</h1>
+    <form class="composer" id="new-topic" style="max-width:720px">
+      <div id="msg"></div>
+      <div class="field"><label>Başlık</label><input name="title" required minlength="8"></div>
+      <div class="field"><label>Kategori</label><select name="category_id" required>
+        <option value="">Seçin</option>${DB.categories.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("")}
+      </select></div>
+      <div class="field"><label>Etiketler</label><input name="tags" placeholder="ipucu destek"></div>
+      <div class="field"><label>Mesaj</label><textarea name="body" required minlength="8"></textarea></div>
+      <div class="composer-actions"><button class="btn primary">Yayınla</button></div>
+    </form>`,"topics");
+  $("#new-topic").addEventListener("submit", e=>{
+    e.preventDefault();
+    const fd = Object.fromEntries(new FormData(e.target).entries());
+    const ts = now();
+    const tid = DB.nextTopic++;
+    DB.topics.push({id:tid, category_id:Number(fd.category_id), user_id:ME.id, title:fd.title.slice(0,180), tags:(fd.tags||"").split(/\s+/).filter(Boolean).join(","), pinned:false, closed:false, views:0, created_at:ts, last_posted_at:ts});
+    DB.posts.push({id:DB.nextPost++, topic_id:tid, user_id:ME.id, body:fd.body, likes:0, created_at:ts});
+    save(); go("#/t/"+tid);
+  });
+}
+function pageAdmin(){
+  if(!ME || (ME.role!=="admin" && ME.role!=="moderator")){ layout(`<div class="err">Yetkiniz yok.</div>`,"admin"); return; }
+  layout(`
+    <h1>Yönetim</h1>
+    <div class="admin-grid">
+      <div class="stat"><b>${DB.users.length}</b><span>Üye</span></div>
+      <div class="stat"><b>${DB.topics.length}</b><span>Konu</span></div>
+      <div class="stat"><b>${DB.posts.length}</b><span>İleti</span></div>
+      <div class="stat"><b>${DB.categories.length}</b><span>Kategori</span></div>
+    </div>
+    ${ME.role==="admin"?`<h2>Yeni kategori</h2>
+    <form class="composer" id="new-cat" style="max-width:560px">
+      <div class="field"><label>Ad</label><input name="name" required></div>
+      <div class="field"><label>Slug</label><input name="slug" required placeholder="ornek"></div>
+      <div class="field"><label>Açıklama</label><input name="description"></div>
+      <div class="field"><label>Renk</label><input name="color" value="#3b82f6"></div>
+      <button class="btn primary">Ekle</button>
+    </form>
+    <p class="muted"><button class="btn" id="reset">Veriyi sıfırla</button></p>`:""}
+    <h2 style="margin-top:28px">Üyeler</h2>
+    <div class="users">${DB.users.map(u=>`
+      <div class="user-card">${avatar(u)}<div style="flex:1">
+        <div class="post-user">${esc(u.display_name)} <span class="muted">@${esc(u.username)}</span></div>
+        <div class="muted">${esc(u.role)}</div>
+        ${ME.role==="admin" && u.username!=="admin"?`<select data-role="${u.id}" style="margin-top:8px">
+          <option ${u.role==="member"?"selected":""}>member</option>
+          <option ${u.role==="moderator"?"selected":""}>moderator</option>
+          <option ${u.role==="admin"?"selected":""}>admin</option>
+        </select>`:""}
+      </div></div>`).join("")}</div>
+  `,"admin");
+  $("#new-cat")?.addEventListener("submit", e=>{
+    e.preventDefault();
+    const fd = Object.fromEntries(new FormData(e.target).entries());
+    const slug = fd.slug.toLowerCase().replace(/[^a-z0-9-]/g,"");
+    if(!slug || DB.categories.some(c=>c.slug===slug)) return alert("Slug geçersiz veya kullanımda.");
+    DB.categories.push({id:DB.nextCat++, slug, name:fd.name, description:fd.description||"", color:fd.color||"#3b82f6"});
+    save(); render();
+  });
+  $("#reset")?.addEventListener("click", ()=>{
+    if(!confirm("Tüm konular ve üyeler örnek veriye döner.")) return;
+    localStorage.removeItem(KEY); load(); render();
+  });
+  app.querySelectorAll("select[data-role]").forEach(sel=>{
+    sel.addEventListener("change", ()=>{
+      const u = userById(Number(sel.dataset.role));
+      if(u){ u.role = sel.value; save(); }
+    });
+  });
+}
+function render(){
+  const raw = route();
+  const [path, qs] = raw.split("?");
+  const q = new URLSearchParams(qs||"");
+  if(path==="/" || path==="") return pageHome();
+  if(path==="/latest") return listTopics({title:"Son konular"});
+  if(path==="/hot") return listTopics({filter:"hot", title:"Popüler"});
+  if(path==="/categories") return layout(`<h1>Kategoriler</h1>${DB.categories.map(c=>`<a class="cat-row" style="--c:${esc(c.color)}" href="#/c/${esc(c.slug)}"><div><h3>${esc(c.name)}</h3><p>${esc(c.description)}</p></div><div class="cat-count">${DB.topics.filter(t=>t.category_id===c.id).length}</div></a>`).join("")}`,"home");
+  if(path.startsWith("/c/")) { const slug=path.slice(3); return listTopics({slug, title: catBySlug(slug)?.name||slug}); }
+  if(path.startsWith("/t/")) return pageTopic(Number(path.slice(3)));
+  if(path==="/users") return pageUsers();
+  if(path==="/about") return layout(`<h1>Hakkında</h1><p>Bu dosya Python gerektirmez. Çift tıklayıp tarayıcıda açmanız yeterli.</p><p class="muted">Veriler bu tarayıcının hafızasında (localStorage) tutulur. Başka bilgisayarda görünmez.</p>`,"about");
+  if(path==="/login") return authForm(true);
+  if(path==="/register") return authForm(false);
+  if(path==="/new") return pageNew();
+  if(path==="/admin") return pageAdmin();
+  if(path==="/search") return listTopics({q:q.get("q")||"", title:"Arama: "+(q.get("q")||"")});
+  layout("<h1>Sayfa yok</h1><p><a href='#/'>Ana sayfa</a></p>");
+}
+load();
+if(!location.hash) location.hash = "#/";
+else render();
+</script>
+</body>
+</html>
